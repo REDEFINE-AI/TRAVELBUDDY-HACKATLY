@@ -1,11 +1,10 @@
 import { BiSolidNavigation } from "react-icons/bi";
-import { IoNotificationsOutline } from "react-icons/io5";
 
 type Props = {};
 
 export default function Header({}: Props) {
   return (
-    <header className="w-full h-14 flex items-center justify-between px-6">
+    <header className="w-full h-14 flex items-center justify-between">
       <div className="">
         <span className="text-xss text-gray-400 font-medium">
           Current location
