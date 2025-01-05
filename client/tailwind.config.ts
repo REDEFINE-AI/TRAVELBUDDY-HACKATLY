@@ -13,7 +13,11 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontSize:{
+        'xss':'.6rem'
+      }
     },
   },
   plugins: [require("preline/plugin")],
+  darkMode:"class"
 } satisfies Config;

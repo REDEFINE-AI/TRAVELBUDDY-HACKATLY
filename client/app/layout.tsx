@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Hubot_Sans } from "next/font/google";
 import "./globals.css";
 import PrelineScript from "./components/PrelineScript";
 
-const inter = Inter({
+const hubotSans = Hubot_Sans({
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
   style: ["normal", "italic"],
 });
 
@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body className={`${hubotSans.className}  antialiased`}>{children}</body>
       <PrelineScript />
     </html>
   );
