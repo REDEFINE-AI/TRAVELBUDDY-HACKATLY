@@ -9,7 +9,7 @@ export default function Header({}: Props) {
         <span className="text-xss text-gray-400 font-medium">
           Current location
         </span>
-        <h3 className="text-sm flex items-center justify-start gap-1 text-teal-500 font-semibold">
+        <h3 className="text-sm flex items-center justify-start gap-1 text-teal-600 font-semibold">
           <BiSolidNavigation /> San Fransisco
         </h3>
       </div>

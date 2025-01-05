@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import CardContainer from "./components/SmallCardContainer";
 import Title from "./components/Title";
+import Tools from "./Tools";
 
 type Props = {};
 
@@ -10,6 +11,7 @@ export default function page({}: Props) {
       <Header />
       <Title/>
       <CardContainer/>
+      <Tools/>
     </div>
   );
 }
