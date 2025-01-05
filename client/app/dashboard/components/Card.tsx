@@ -20,12 +20,12 @@ const Card: React.FC<CardProps> = ({
   return (
     <div
       className={clsx(
-        "flex bg-white p-2 py-2.5 group cursor-pointer hover:bg-teal-500  rounded-lg items-center  gap-2 border border-teal-300",
+        "flex bg-white p-2 py-2.5 group cursor-pointer hover:bg-teal-600  rounded-lg items-center  gap-2 border border-teal-400",
         horizontal ? "flex-row" : "flex-col"
       )}
     >
       {/* Icon Container */}
-      <div className="bg-teal-50 text-teal-500 p-2 rounded-full flex items-center justify-center">
+      <div className="bg-teal-50 text-teal-600 p-2 rounded-full flex items-center justify-center">
         <Icon size={14} />
       </div>
 
