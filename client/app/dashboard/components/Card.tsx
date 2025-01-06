@@ -20,7 +20,7 @@ const Card: React.FC<CardProps> = ({
   return (
     <div
       className={clsx(
-        "flex bg-white p-2 py-2.5 group cursor-pointer hover:bg-teal-600  rounded-lg items-center  gap-2 border border-teal-400",
+        "flex bg-white p-2 py-2.5 group cursor-pointer hover:bg-gradient-to-br hover:from-teal-400 hover:to-teal-600  rounded-lg items-center  gap-2 border border-teal-400",
         horizontal ? "flex-row" : "flex-col"
       )}
     >
