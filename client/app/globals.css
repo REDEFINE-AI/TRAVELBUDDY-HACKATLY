@@ -24,3 +24,6 @@ body {
 .primary-bg{
   @apply bg-gradient-to-br from-teal-400 to-teal-600 ;
 }
+input:focus {
+  outline: none;
+}
