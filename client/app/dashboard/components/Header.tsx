@@ -1,8 +1,7 @@
 import { BiSolidNavigation } from "react-icons/bi";
 
-type Props = {};
-
-export default function Header({}: Props) {
+ 
+export default function Header(  ) {
   return (
     <header className="w-full h-14 flex items-center justify-between">
       <div className="">

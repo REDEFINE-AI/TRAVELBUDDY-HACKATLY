@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+let hasSeenLoadingScreen = false;
+
 const LoadingScreen = () => (
   <motion.div
     initial={{ opacity: 1 }}
@@ -30,18 +32,21 @@ const LoadingScreen = () => (
 
 const WelcomePage = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasSeenLoadingScreen);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
+    if (!hasSeenLoadingScreen) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+        hasSeenLoadingScreen = true;
+      }, 3000);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   return (
-    <div className="bg-white">
+    <div className="bg-teal">
       <AnimatePresence mode="wait">
         {loading ? (
           <LoadingScreen />

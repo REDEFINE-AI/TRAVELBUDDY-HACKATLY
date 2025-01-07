@@ -20,7 +20,7 @@ interface LoginFormData {
   };
 }
 
-export const LoginPage: React.FC = () => {
+ const LoginPage: React.FC = () => {
   const router = useRouter();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -39,6 +39,7 @@ export const LoginPage: React.FC = () => {
       setFormData((prev) => ({ ...prev, errors }));
       return;
     }
+    router.push("/onboarding")
   };
 
   return (

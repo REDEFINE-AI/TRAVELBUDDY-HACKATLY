@@ -27,7 +27,7 @@ interface SignupFormData {
   };
 }
 
-export const SignupPage: React.FC = () => {
+ const SignupPage: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname()
   const [step, setStep] = useState(1);
@@ -89,7 +89,7 @@ export const SignupPage: React.FC = () => {
       } else {
         // Add your API call to verify OTP and complete signup here
         // await verifyOTPAndSignup(formData);
-        router.push("/dashboard");
+        router.push("/onboarding");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -241,7 +241,7 @@ export const SignupPage: React.FC = () => {
               }}
               className="w-full text-center text-sm text-teal-600 hover:text-teal-700 transition-colors"
             >
-              Didn't receive code? Resend
+              Didn&apos;t receive code? Resend
             </button>
           )}
         </form>

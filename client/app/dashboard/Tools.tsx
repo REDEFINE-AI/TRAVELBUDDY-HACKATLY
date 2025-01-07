@@ -5,9 +5,8 @@ import { MdTranslate } from "react-icons/md";
 import { TbWorld } from "react-icons/tb";
 import { RiGeminiFill } from "react-icons/ri";
 
-type Props = {};
-
-export default function Tools({}: Props) {
+ 
+export default function Tools(  ) {
   return (
     <div className="mt-4 ">
       <div className="flex items-center justify-between">

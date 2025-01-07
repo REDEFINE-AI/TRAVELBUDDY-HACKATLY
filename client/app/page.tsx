@@ -1,4 +1,3 @@
-import Image from "next/image";
 
 export default function Home() {
   return (
@@ -11,7 +10,7 @@ export default function Home() {
       >
         <span id="hs-soft-color-dark-label" className="font-bold">
           Dark
-        </span>{" "}
+        </span>
         alert! You should check in on some of those fields below.
       </div>
       <div
@@ -22,7 +21,7 @@ export default function Home() {
       >
         <span id="hs-soft-color-secondary-label" className="font-bold">
           Secondary
-        </span>{" "}
+        </span>
         alert! You should check in on some of those fields below.
       </div>
       <div
@@ -33,7 +32,7 @@ export default function Home() {
       >
         <span id="hs-soft-color-info-label" className="font-bold">
           Info
-        </span>{" "}
+        </span>
         alert! You should check in on some of those fields below.
       </div>
       <div
@@ -44,7 +43,7 @@ export default function Home() {
       >
         <span id="hs-soft-color-success-label" className="font-bold">
           Success
-        </span>{" "}
+        </span>
         alert! You should check in on some of those fields below.
       </div>
       <div
@@ -55,7 +54,7 @@ export default function Home() {
       >
         <span id="hs-soft-color-danger-label" className="font-bold">
           Danger
-        </span>{" "}
+        </span>
         alert! You should check in on some of those fields below.
       </div>
       <div
@@ -66,7 +65,7 @@ export default function Home() {
       >
         <span id="hs-soft-color-warning-label" className="font-bold">
           Warning
-        </span>{" "}
+        </span>
         alert! You should check in on some of those fields below.
       </div>
       <div
@@ -77,7 +76,7 @@ export default function Home() {
       >
         <span id="hs-soft-color-light-label" className="font-bold">
           Light
-        </span>{" "}
+        </span>
         alert! You should check in on some of those fields below.
       </div>
     </div>
