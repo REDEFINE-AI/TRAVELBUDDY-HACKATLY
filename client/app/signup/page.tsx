@@ -5,6 +5,7 @@ import { FiMail, FiLock, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { AuthCard } from '../components/auth/AuthCard';
 import { Input } from '../components/auth/Input';
+import { OTPInput } from '../components/auth/OTPInput';
 import { validateField } from '../utils/validation';
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
@@ -33,26 +34,60 @@ export const SignupPage: React.FC = () => {
     errors: { email: '', phone: '', password: '', otp: '' }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInputChange = (field: keyof SignupFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+      errors: { ...prev.errors, [field]: '' }
+    }));
+  };
+
+  const handleOTPChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      otp: value,
+      errors: { ...prev.errors, otp: value.length === 6 ? '' : 'Please enter all 6 digits' }
+    }));
+  };
+
+  const validateForm = () => {
     const errors = {
-      email: validateField('email', formData.email),
-      phone: validateField('phone', formData.phone),
-      password: validateField('password', formData.password),
+      email: step === 1 ? validateField('email', formData.email) : '',
+      phone: step === 1 ? validateField('phone', formData.phone) : '',
+      password: step === 1 ? validateField('password', formData.password) : '',
       otp: step === 2 ? validateField('otp', formData.otp) : ''
     };
 
-    if (Object.values(errors).some(error => error)) {
-      setFormData(prev => ({ ...prev, errors }));
+    setFormData(prev => ({ ...prev, errors }));
+    return !Object.values(errors).some(error => error);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
       return;
     }
 
-    if (step === 1) {
-      setStep(2);
-      // Handle OTP sending logic here
-    } else {
-      // Handle signup completion
+    try {
+      if (step === 1) {
+        // Add your API call to send OTP here
+        // await sendOTP(formData.phone);
+        setStep(2);
+      } else {
+        // Add your API call to verify OTP and complete signup here
+        // await verifyOTPAndSignup(formData);
+        router.push('/dashboard'); // or wherever you want to redirect after successful signup
+      }
+    } catch (error) {
+      // Handle error appropriately
+      console.error('Error:', error);
     }
+  };
+
+  const handleSocialSignup = (provider: 'google' | 'facebook') => {
+    // Implement social signup logic
+    console.log(`${provider} signup clicked`);
   };
 
   return (
@@ -62,7 +97,8 @@ export const SignupPage: React.FC = () => {
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => step === 1 ? router.push('/welcome') : setStep(1)}
-          className="text-white"
+          className="text-white hover:opacity-80 transition-opacity"
+          aria-label="Go back"
         >
           <FiArrowLeft size={16} />
         </motion.button>
@@ -72,8 +108,11 @@ export const SignupPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           {step === 1 ? 'Create Account' : 'Verify Phone'}
         </h1>
-        <p className="text-gray-600 mb-4 text-sm">
-          {step === 1 ? 'Get started for free' : 'Enter the OTP sent to your phone'}
+        <p className="text-gray-600 mb-6 text-sm">
+          {step === 1 
+            ? 'Get started for free' 
+            : `Enter the verification code sent to ${formData.phone}`
+          }
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,7 +123,7 @@ export const SignupPage: React.FC = () => {
                 label="Email"
                 icon={<FiMail size={14} />}
                 value={formData.email}
-                onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 error={formData.errors.email}
                 placeholder="Enter your email"
               />
@@ -94,7 +133,7 @@ export const SignupPage: React.FC = () => {
                 label="Phone Number"
                 icon={<FiPhone size={14} />}
                 value={formData.phone}
-                onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
                 error={formData.errors.phone}
                 placeholder="Enter your phone number"
               />
@@ -104,20 +143,16 @@ export const SignupPage: React.FC = () => {
                 label="Password"
                 icon={<FiLock size={14} />}
                 value={formData.password}
-                onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                onChange={(e) => handleInputChange('password', e.target.value)}
                 error={formData.errors.password}
                 placeholder="Create a password"
               />
             </>
           ) : (
-            <Input
-              type="text"
-              label="OTP"
-              icon={<FiLock size={14} />}
+            <OTPInput
               value={formData.otp}
-              onChange={e => setFormData(prev => ({ ...prev, otp: e.target.value }))}
+              onChange={handleOTPChange}
               error={formData.errors.otp}
-              placeholder="Enter 6-digit OTP"
             />
           )}
 
@@ -125,40 +160,61 @@ export const SignupPage: React.FC = () => {
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             className="w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl
-              py-2 text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              py-2.5 text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
             type="submit"
           >
             {step === 1 ? 'Continue' : 'Verify & Create Account'}
           </motion.button>
+
+          {step === 2 && (
+            <button
+              type="button"
+              onClick={() => {
+                // Add resend OTP logic here
+                console.log('Resend OTP clicked');
+              }}
+              className="w-full text-center text-sm text-teal-600 hover:text-teal-700 transition-colors"
+            >
+              Didn't receive code? Resend
+            </button>
+          )}
         </form>
 
-        <div className="relative py-3">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
+        {step === 1 && (
+          <>
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center justify-center p-3 border border-gray-300 text-gray-600 rounded-lg text-xs"
-          >
-            <FcGoogle className="mr-1" size={16} />
-            Google
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center justify-center p-3 border border-gray-300 text-gray-600 rounded-lg text-xs"
-          >
-            <FaFacebook className="mr-1 text-blue-600" size={16} />
-            Facebook
-          </motion.button>
-        </div>
+            <div className="grid grid-cols-2 gap-2">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleSocialSignup('google')}
+                className="flex items-center justify-center p-3 border border-gray-300 
+                  text-gray-600 rounded-lg text-xs hover:bg-gray-50 transition-colors"
+              >
+                <FcGoogle className="mr-1" size={16} />
+                Google
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleSocialSignup('facebook')}
+                className="flex items-center justify-center p-3 border border-gray-300 
+                  text-gray-600 rounded-lg text-xs hover:bg-gray-50 transition-colors"
+              >
+                <FaFacebook className="mr-1 text-blue-600" size={16} />
+                Facebook
+              </motion.button>
+            </div>
+          </>
+        )}
       </AuthCard>
     </div>
   );
