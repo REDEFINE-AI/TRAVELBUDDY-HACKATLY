@@ -1,7 +1,8 @@
-"use client"
+"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 interface OnboardingScreen {
   id: number;
@@ -73,7 +74,7 @@ const Onboarding = () => {
   };
 
   const renderTitle = (title: string, accentWords: string) => {
-    const beforeAccent = title.replace(accentWords, '');
+    const beforeAccent = title.replace(accentWords, "");
     return (
       <>
         <span className="text-gray-800">{beforeAccent}</span>
@@ -83,7 +84,7 @@ const Onboarding = () => {
   };
 
   return (
-    <div 
+    <div
       className="relative h-screen w-screen bg-gradient-to-b from-teal-50 to-white overflow-hidden"
       onTouchStart={handleDragStart}
       onTouchEnd={handleDragEnd}
@@ -109,10 +110,13 @@ const Onboarding = () => {
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.7 }}
                     >
-                      <img
+                      <Image
                         src={screen.image}
                         alt={`Onboarding ${screen.id}`}
-                        className="w-full h-full object-cover rounded-b-[2rem]"
+                        className="rounded-b-[2rem]"
+                        layout="fill"
+                        objectFit="cover"
+                        priority
                       />
                     </motion.div>
                   </div>
@@ -146,7 +150,9 @@ const Onboarding = () => {
                       <motion.div
                         key={idx}
                         className={`h-1 rounded-full transition-all duration-300 ${
-                          idx === currentScreen ? "w-6 bg-teal-600" : "w-1.5 bg-gray-300"
+                          idx === currentScreen
+                            ? "w-6 bg-teal-600"
+                            : "w-1.5 bg-gray-300"
                         }`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
