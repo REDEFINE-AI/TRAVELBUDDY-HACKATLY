@@ -3,6 +3,7 @@ from app import models
 from app.db import engine
 from app.auth.auth import auth_router
 from app.dashboard.dashboard import dashboard_router
+from app.translator.translator import translator_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -25,3 +26,4 @@ app.add_middleware(
 models.Base.metadata.create_all(bind=engine)
 app.include_router(auth_router, prefix="/auth")
 app.include_router(dashboard_router, prefix="/dashboard")
+app.include_router(translator_router, prefix="/translator")
