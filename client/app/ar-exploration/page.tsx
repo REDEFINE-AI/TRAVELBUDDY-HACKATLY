@@ -41,6 +41,9 @@ interface HistoricalData {
   title: string;
   description: string;
   year: string;
+  architecture: string;
+  culturalSignificance: string;
+  timeline: Array<{year: string, event: string}>;
 }
 
 interface AudioPlayerProps {
@@ -121,29 +124,171 @@ const ScanningAnimation: React.FC = () => {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="relative">
-        <motion.div
-          variants={scanAnimationVariants}
-          initial="hidden"
-          animate="visible"
-          className="absolute inset-0 border-2 border-teal-400 rounded-full"
-        />
+        {/* Outer rotating ring */}
         <motion.div
           animate={{
-            background: [
-              "linear-gradient(0deg, rgba(0,188,212,0.3) 0%, transparent 50%)",
-              "linear-gradient(180deg, rgba(0,188,212,0.3) 0%, transparent 50%)",
-              "linear-gradient(360deg, rgba(0,188,212,0.3) 0%, transparent 50%)",
-            ],
+            rotate: 360,
+            scale: [1, 1.1, 1],
           }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute inset-0 bg-gradient-to-b from-teal-300/30 to-transparent"
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute inset-0 w-40 h-40 border-4 border-teal-500/30 rounded-full"
         />
-        <div className="w-32 h-32 rounded-full border-4 border-teal-500 flex items-center justify-center">
-          <MdAutoAwesome className="w-12 h-12 text-teal-500" />
+        
+        {/* Middle pulsing ring */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.5, 1, 0.5],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute inset-0 w-32 h-32 border-2 border-teal-400/60 rounded-full m-4"
+        />
+
+        {/* Inner scanning effect */}
+        <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-teal-500 m-8">
+          <motion.div
+            animate={{
+              y: [-100, 100],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "linear"
+            }}
+            className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-teal-500/50 to-transparent"
+          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: [0, 1, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute inset-0 bg-teal-400/20"
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <MdAutoAwesome className="w-8 h-8 text-teal-500" />
+          </div>
         </div>
+
+        {/* Orbiting dots */}
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              rotate: 360,
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear",
+              delay: i * 0.3,
+            }}
+            className="absolute inset-0"
+          >
+            <motion.div
+              className="absolute w-2 h-2 bg-teal-500 rounded-full"
+              style={{
+                top: '50%',
+                left: '50%',
+                marginLeft: '-4px',
+                marginTop: '-40px',
+              }}
+            />
+          </motion.div>
+        ))}
       </div>
+
+      {/* Scanning text */}
+      <motion.div 
+        className="absolute mt-32 text-center"
+        animate={{
+          opacity: [0.5, 1, 0.5],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
+        <p className="text-teal-700 font-medium">Analyzing Landmark</p>
+        <p className="text-teal-600/70 text-sm mt-1">Using AI to identify location</p>
+      </motion.div>
     </div>
   );
+};
+
+// Add new interface for landmark detection
+interface LandmarkDetection {
+  landmarkName: string;
+  confidence: number;
+  description?: string;
+  historicalInfo?: string;
+  culturalInfo?: string;
+}
+
+// Add this component before the ARExplorer component
+const ModalContent: React.FC = () => {
+  return (
+    <motion.div
+      variants={modalVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-xl z-50"
+    >
+      <div className="max-h-[80vh] overflow-y-auto">
+        {/* Modal content will be implemented later */}
+        <p>Historical information will be displayed here</p>
+      </div>
+    </motion.div>
+  );
+};
+
+// Add test image URL
+const TEST_IMAGE_URL = "https://keralabekalhouseboat.com/wp-content/uploads/2019/09/bekal-blog-1.jpg";
+
+// Updated urlToBase64 function with proper error handling
+const urlToBase64 = async (url: string): Promise<string> => {
+  try {
+    console.log("Fetching image from URL:", url);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          // Get only the base64 data without the prefix
+          const base64 = reader.result.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+          console.log("Base64 conversion successful, length:", base64.length);
+          resolve(base64);
+        } else {
+          reject(new Error('Failed to convert to base64'));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Error in urlToBase64:", error);
+    throw error;
+  }
 };
 
 const ARExplorer: React.FC = () => {
@@ -160,9 +305,7 @@ const ARExplorer: React.FC = () => {
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [location, setLocation] = useState<Location | null>(null);
-  const [historicalData, setHistoricalData] = useState<HistoricalData | null>(
-    null
-  );
+  const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -249,21 +392,91 @@ const ARExplorer: React.FC = () => {
   };
 
   const performAIScan = async (): Promise<void> => {
-    if (!captureState.image) return;
-
     setCaptureState({ ...captureState, isScanning: true, isProcessing: true });
 
     try {
-      // Simulate AI processing and historical data fetch
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setHistoricalData({
-        title: "Historical Monument",
-        description:
-          "This location features a significant historical landmark dating back to the colonial era. The architecture reflects the period's distinctive style, and it played a crucial role in the region's development.",
-        year: "1876",
+      console.log("Starting AI scan with test image...");
+      
+      // Prepare the request body
+      const requestBody = {
+        image: TEST_IMAGE_URL,
+        language: 'en'
+      };
+
+      console.log("Preparing API request with body:", requestBody);
+      
+      const visionResponse = await fetch('https://ultimate-cloud-vision-image.p.rapidapi.com/google/cloudvision/landmarks', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'X-RapidAPI-Key': process.env.NEXT_PUBLIC_RAPIDAPI_KEY || '',
+          'X-RapidAPI-Host': 'ultimate-cloud-vision-image.p.rapidapi.com'
+        },
+        body: JSON.stringify(requestBody)
       });
+
+      if (!visionResponse.ok) {
+        const errorText = await visionResponse.text();
+        console.error("API Response not OK:", {
+          status: visionResponse.status,
+          statusText: visionResponse.statusText,
+          error: errorText
+        });
+        throw new Error(`API request failed: ${visionResponse.statusText || errorText}`);
+      }
+
+      const visionData = await visionResponse.json();
+      console.log("Vision API response:", visionData);
+
+      if (!Array.isArray(visionData) || visionData.length === 0) {
+        console.error("No landmarks detected in the response:", visionData);
+        throw new Error('No landmark detected in the image');
+      }
+
+      const landmark = visionData[0]; // Get the first landmark
+      const landmarkName = landmark.description;
+      console.log("Successfully detected landmark:", landmarkName);
+
+      // 2. Get Wikipedia information about the landmark
+      console.log("Fetching Wikipedia information...");
+      const wikiResponse = await fetch(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(landmarkName)}`
+      );
+      const wikiData = await wikiResponse.json();
+
+      // 3. Get additional cultural information using Wikipedia API
+      const wikiCultureResponse = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(landmarkName)}&origin=*`
+      );
+      const wikiCultureData = await wikiCultureResponse.json();
+      const pageId = Object.keys(wikiCultureData.query.pages)[0];
+      const culturalInfo = wikiCultureData.query.pages[pageId].extract;
+
+      // Update historical data with gathered information
+      const historicalInfo = {
+        title: landmarkName,
+        description: wikiData.extract,
+        year: extractYear(wikiData.extract) || "Historical",
+        architecture: extractArchitectureInfo(culturalInfo) || "Notable Architecture",
+        culturalSignificance: culturalInfo,
+        timeline: generateTimeline(wikiData.extract, culturalInfo)
+      };
+
+      console.log("Setting historical data:", historicalInfo);
+      setHistoricalData(historicalInfo);
+
+      // Start voice narration automatically
+      startNarration(historicalInfo);
+      setModalOpen(true);
+
     } catch (err) {
       console.error("AI scan failed:", err);
+      setCameraState({ 
+        ...cameraState, 
+        error: err instanceof Error 
+          ? `Analysis failed: ${err.message}` 
+          : "Failed to analyze location. Please try again." 
+      });
     } finally {
       setCaptureState({
         ...captureState,
@@ -272,132 +485,123 @@ const ARExplorer: React.FC = () => {
       });
     }
   };
-  // Enhanced Modal Content Component
-  const ModalContent: React.FC = () => {
-    if (!historicalData) return null;
 
-    return (
-      <motion.div
-        variants={modalVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="fixed bottom-0 inset-x-0 z-50 bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto"
-      >
-        <div className="p-4">
-          {/* Drag Handle */}
-          <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4" />
-
-          {/* Close Button */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setModalOpen(false)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 text-gray-600"
-          >
-            <MdClose size={24} />
-          </motion.button>
-
-          {/* Image Section */}
-          <div className="relative rounded-2xl overflow-hidden mb-6">
-            <img
-              src={captureState.image || ""}
-              alt="Captured Location"
-              className="w-full h-64 object-cover"
-            />
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-              <h2 className="text-2xl font-bold text-white">
-                {historicalData.title}
-              </h2>
-              <p className="text-white/90 flex items-center gap-2">
-                <MdLocationOn /> Historical Site
-              </p>
-            </div>
-          </div>
-
-          {/* Audio Player */}
-          <div className="mb-6">
-            <AudioPlayer isPlaying={isPlaying} onToggle={toggleVoiceOver} />
-          </div>
-
-          {/* Content Sections */}
-          <div className="space-y-6">
-            {/* Overview Card */}
-            <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100">
-              <div className="flex items-center gap-2 mb-2 text-blue-800">
-                <MdHistory size={24} />
-                <h3 className="font-semibold">Historical Overview</h3>
-              </div>
-              <p className="text-blue-900">{historicalData.description}</p>
-            </div>
-
-            {/* Architecture Card */}
-            <div className="bg-purple-50/50 rounded-2xl p-4 border border-purple-100">
-              <div className="flex items-center gap-2 mb-2 text-purple-800">
-                <MdArchitecture size={24} />
-                <h3 className="font-semibold">Architectural Significance</h3>
-              </div>
-              <p className="text-purple-900">
-                The structure showcases remarkable architectural elements from
-                the {historicalData.year} era, featuring intricate details and
-                period-specific construction techniques.
-              </p>
-            </div>
-
-            {/* Timeline Card */}
-            <div className="bg-amber-50/50 rounded-2xl p-4 border border-amber-100">
-              <div className="flex items-center gap-2 mb-2 text-amber-800">
-                <MdTimeline size={24} />
-                <h3 className="font-semibold">Key Timeline</h3>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                  <p className="text-amber-900">
-                    Built in {historicalData.year}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                  <p className="text-amber-900">Major renovation in 1920</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
-                  <p className="text-amber-900">Heritage site status in 1975</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Cultural Impact Card */}
-            <div className="bg-teal-50/50 rounded-2xl p-4 border border-teal-100 mb-6">
-              <div className="flex items-center gap-2 mb-2 text-teal-800">
-                <MdPeople size={24} />
-                <h3 className="font-semibold">Cultural Impact</h3>
-              </div>
-              <p className="text-teal-900">
-                This site has played a pivotal role in shaping local culture and
-                traditions, serving as a gathering place for significant
-                community events and celebrations.
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
+  // Helper function to extract year from text
+  const extractYear = (text: string): string | null => {
+    const yearRegex = /\b(1[0-9]{3}|20[0-2][0-9])\b/;
+    const match = text.match(yearRegex);
+    return match ? match[0] : null;
   };
 
+  // Helper function to extract architecture information
+  const extractArchitectureInfo = (text: string): string | null => {
+    const architectureKeywords = ['architecture', 'built', 'designed', 'style', 'structure'];
+    const sentences = text.split('. ');
+    
+    for (const sentence of sentences) {
+      if (architectureKeywords.some(keyword => sentence.toLowerCase().includes(keyword))) {
+        return sentence;
+      }
+    }
+    return null;
+  };
+
+  // Helper function to generate timeline
+  const generateTimeline = (mainText: string, culturalText: string): Array<{year: string, event: string}> => {
+    const timeline: Array<{year: string, event: string}> = [];
+    const combinedText = `${mainText} ${culturalText}`;
+    const yearRegex = /\b(1[0-9]{3}|20[0-2][0-9])\b/g;
+    const sentences = combinedText.split('. ');
+
+    sentences.forEach(sentence => {
+      const year = sentence.match(yearRegex);
+      if (year) {
+        timeline.push({
+          year: year[0],
+          event: sentence.trim()
+        });
+      }
+    });
+
+    return timeline.sort((a, b) => parseInt(a.year) - parseInt(b.year));
+  };
+
+  // Update the narration function to handle sections
+  const startNarration = (content: HistoricalData) => {
+    if (!synth) return;
+
+    // Cancel any ongoing speech
+    synth.cancel();
+
+    // Create narrative script
+    const narrativeScript = `
+      ${content.title}. 
+      About this landmark: ${content.description}
+      
+      Architectural Details: ${content.architecture}
+      
+      Cultural Significance: ${content.culturalSignificance}
+      
+      Historical Timeline: ${content.timeline.map(event => 
+        `In ${event.year}, ${event.event}`
+      ).join('. ')}
+    `;
+
+    // Split into smaller chunks for better narration
+    const chunks = narrativeScript.split(/[.!?]+/).filter(chunk => chunk.trim());
+
+    let currentChunkIndex = 0;
+
+    const speakNextChunk = () => {
+      if (currentChunkIndex >= chunks.length) {
+        setIsPlaying(false);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(chunks[currentChunkIndex]);
+      
+      // Configure voice
+      const voices = synth.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.name.includes('Google') || voice.name.includes('Premium')
+      );
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
+      // Configure speech parameters
+      utterance.rate = 0.9;  // Slightly slower for clarity
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      // Handle chunk completion
+      utterance.onend = () => {
+        currentChunkIndex++;
+        speakNextChunk();
+      };
+
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setIsPlaying(false);
+      };
+
+      synth.speak(utterance);
+    };
+
+    // Start narration
+    setIsPlaying(true);
+    speakNextChunk();
+  };
+
+  // Update toggleVoiceOver to use the new narration
   const toggleVoiceOver = () => {
-    if (!synth || !historicalData) return;
+    if (!historicalData) return;
 
     if (isPlaying) {
-      synth.cancel();
+      synth?.cancel();
       setIsPlaying(false);
     } else {
-      const utterance = new SpeechSynthesisUtterance(
-        historicalData.description
-      );
-      utterance.onend = () => setIsPlaying(false);
-      setIsPlaying(true);
-      synth.speak(utterance);
+      startNarration(historicalData);
     }
   };
 
@@ -416,6 +620,142 @@ const ARExplorer: React.FC = () => {
       </motion.div>
     );
   };
+
+  // Add a function to validate your API key is set
+  const validateApiKey = () => {
+    const apiKey = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
+    if (!apiKey) {
+      console.error("RapidAPI key is not set in environment variables!");
+      return false;
+    }
+    return true;
+  };
+
+  // Update the test button click handler
+  const handleTestClick = async () => {
+    if (!validateApiKey()) {
+      setCameraState({ 
+        isActive: false, 
+        error: "API key is not configured. Please check the setup." 
+      });
+      return;
+    }
+    await performAIScan();
+  };
+
+  // ModalContent component inside main component to access state
+  const ModalContent = () => {
+    if (!historicalData) return null;
+
+    return (
+      <motion.div
+        variants={modalVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-xl z-50 max-h-[85vh] overflow-y-auto"
+      >
+        {/* Header with Image */}
+        <div className="relative mb-6">
+          <button 
+            onClick={() => setModalOpen(false)} 
+            className="absolute right-2 top-2 z-10 bg-white/80 backdrop-blur-sm p-2 rounded-full"
+          >
+            <MdClose className="w-6 h-6 text-gray-600" />
+          </button>
+          
+          <div className="relative h-48 rounded-2xl overflow-hidden mb-4">
+            <img 
+              src={TEST_IMAGE_URL} 
+              alt={historicalData.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+              <h2 className="text-2xl font-bold text-white">{historicalData.title}</h2>
+              <div className="flex items-center gap-2 text-white/90 text-sm mt-1">
+                <MdLocationOn className="w-4 h-4" />
+                <span>Historical Landmark</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Audio Player */}
+          <AudioPlayer isPlaying={isPlaying} onToggle={toggleVoiceOver} />
+        </div>
+
+        {/* Content Sections */}
+        <div className="space-y-6">
+          {/* Quick Facts */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-teal-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-teal-700 mb-2">
+                <MdTimeline className="w-5 h-5" />
+                <span className="font-semibold">Year Built</span>
+              </div>
+              <p className="text-teal-900">{historicalData.year}</p>
+            </div>
+            <div className="bg-orange-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-orange-700 mb-2">
+                <MdArchitecture className="w-5 h-5" />
+                <span className="font-semibold">Style</span>
+              </div>
+              <p className="text-orange-900">Historical Architecture</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">About</h3>
+            <p className="text-gray-600 leading-relaxed">{historicalData.description}</p>
+          </div>
+
+          {/* Architecture */}
+          <div className="bg-gradient-to-br from-teal-50 to-teal-100/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 text-teal-800 mb-3">
+              <MdArchitecture className="w-6 h-6" />
+              <h3 className="text-lg font-semibold">Architecture</h3>
+            </div>
+            <p className="text-teal-700 leading-relaxed">{historicalData.architecture}</p>
+          </div>
+
+          {/* Cultural Significance */}
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 text-orange-800 mb-3">
+              <MdPeople className="w-6 h-6" />
+              <h3 className="text-lg font-semibold">Cultural Significance</h3>
+            </div>
+            <p className="text-orange-700 leading-relaxed">{historicalData.culturalSignificance}</p>
+          </div>
+
+          {/* Timeline */}
+          {historicalData.timeline.length > 0 && (
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 text-purple-800 mb-4">
+                <MdTimeline className="w-6 h-6" />
+                <h3 className="text-lg font-semibold">Historical Timeline</h3>
+              </div>
+              <div className="space-y-4">
+                {historicalData.timeline.map((event, index) => (
+                  <div key={index} className="flex gap-4 items-start">
+                    <div className="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                      {event.year}
+                    </div>
+                    <p className="text-purple-900 flex-1 text-sm leading-relaxed">
+                      {event.event}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Padding for scrolling */}
+        <div className="h-6" />
+      </motion.div>
+    );
+  };
+
   return (
     <div className="relative h-screen w-full bg-gradient-to-b from-teal-50 to-white">
       <div className="flex flex-col h-full p-4">
@@ -512,16 +852,16 @@ const ARExplorer: React.FC = () => {
                 </motion.button>
               )}
 
-              {captureState.image && !captureState.isProcessing && (
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={performAIScan}
-                  className="p-6 text-white bg-teal-500 rounded-full shadow-lg"
-                >
-                  <MdAutoAwesome className="w-8 h-8" />
-                </motion.button>
-              )}
+              {/* Update test button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleTestClick}
+                className="p-6 text-white bg-teal-500 rounded-full shadow-lg"
+              >
+                <MdAutoAwesome className="w-8 h-8" />
+                <span className="text-xs block mt-1">Test</span>
+              </motion.button>
 
               {captureState.isProcessing && (
                 <div className="p-6 text-white bg-teal-500 rounded-full shadow-lg">
@@ -532,19 +872,12 @@ const ARExplorer: React.FC = () => {
           </motion.div>
         </div>
       </div>
-      <AnimatePresence>{modalOpen && <ModalContent />}</AnimatePresence>
       <AnimatePresence>
-        {captureState.isScanning && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50"
-          >
-            {renderScanningOverlay()}
-          </motion.div>
-        )}
-      </AnimatePresence>{" "}
+        {modalOpen && <ModalContent />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {captureState.isScanning && renderScanningOverlay()}
+      </AnimatePresence>
     </div>
   );
 };
