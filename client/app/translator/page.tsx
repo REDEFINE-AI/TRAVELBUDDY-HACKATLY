@@ -1,6 +1,5 @@
-import React from "react";
-import { FaMicrophone } from "react-icons/fa6";
-import { LuAudioLines } from "react-icons/lu";
+import { FaMicrophone } from 'react-icons/fa6';
+import { LuAudioLines } from 'react-icons/lu';
 
 export default function Page() {
   return (
