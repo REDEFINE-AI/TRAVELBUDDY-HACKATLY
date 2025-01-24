@@ -1,11 +1,13 @@
-import ReactDatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import ReactDatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface DatePickerFieldProps {
   label: string;
   selected: Date | null;
   onChange: (date: Date | null) => void;
   minDate?: Date; // minDate can be a Date or undefined (no null)
+  placeholderText?: string;
+  className?: string;
 }
 
 export default function DatePickerField({
