@@ -37,6 +37,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ isPlaying, onToggle }) => {
   );
 };
 
+interface TranslatorToolProps {
+  language: string;
+  translatedTo: string;
+  translatedText: string;
+}
+
 export default function Page() {
   const [isPlaying, setIsPlaying] = useState(false);
   return (
@@ -128,7 +134,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div id="translated_language">
+        <div id="translated_language" className="p-3 bg-teal-50 rounded-lg">
           <p>
             Lorem ipsum dolor sit amet consectetur, adipisicing elit. Numquam
             assumenda, quaerat nam alias porro aperiam aliquid laborum omnis
