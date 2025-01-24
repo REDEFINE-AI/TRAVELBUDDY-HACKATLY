@@ -133,7 +133,7 @@ interface SignupFormData {
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => {
-            if (step === 1) router.push("/welcome");
+            if (step === 1) router.push("/");
             else setStep(step - 1);
           }}
           className="text-white hover:opacity-80 transition-opacity"

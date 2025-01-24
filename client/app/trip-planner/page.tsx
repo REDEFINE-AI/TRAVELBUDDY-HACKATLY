@@ -7,6 +7,7 @@ import DateRangePicker from './components/DateRangePicker';
 import TravelersSelector from './components/TravelersSelector';
 import { FaMapMarkedAlt, FaCalendarAlt, FaUsers } from 'react-icons/fa';
 import Image from 'next/image';
+import TravelPackages from './components/TravelPackages';
 
 interface Place {
   label: string;
@@ -17,6 +18,10 @@ interface Place {
 interface DateRange {
   startDate: Date | null;
   endDate: Date | null;
+}
+
+interface TripStep {
+  step: 'planning' | 'packages';
 }
 
 const TripPlanner = () => {
@@ -38,6 +43,8 @@ const TripPlanner = () => {
 
   // Add new state for carousel
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const [currentStep, setCurrentStep] = useState<TripStep['step']>('planning');
 
   const destinationImages = [
     {
@@ -112,74 +119,90 @@ const TripPlanner = () => {
     updateTripData('startDate', dateRange.startDate);
     updateTripData('endDate', dateRange.endDate);
     updateTripData('travelers', travelers);
+    setCurrentStep('packages');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-b pb-20 from-teal-50 to-white px-4 py-4">
       <div className="max-w-md mx-auto">
-        {/* Hero Card Carousel */}
-        <div className="mb-10 mt-6 w-full h-48 relative rounded-xl overflow-hidden">
-          <div className="absolute inset-0">
-            <Image
-              src={`${destinationImages[currentImageIndex].src}?auto=format&fit=crop&w=1200&q=80`}
-              alt={destinationImages[currentImageIndex].alt}
-              fill
-              className="object-cover transition-all duration-700 ease-in-out transform scale-105"
-              priority
-              unoptimized
+        {currentStep === 'planning' ? (
+          <>
+            {/* Hero Card Carousel */}
+            <div className="mb-10 mt-6 w-full h-48 relative rounded-xl overflow-hidden">
+              <div className="absolute inset-0">
+                <Image
+                  src={`${destinationImages[currentImageIndex].src}?auto=format&fit=crop&w=1200&q=80`}
+                  alt={destinationImages[currentImageIndex].alt}
+                  fill
+                  className="object-cover transition-all duration-700 ease-in-out transform scale-105"
+                  priority
+                  unoptimized
+                />
+                {/* Reduced overlay opacity from 0.4 to 0.25 */}
+                <div className="absolute inset-0 bg-black/25" />
+              </div>
+
+              <div className="relative z-10 h-full flex flex-col items-center justify-center">
+                <h1 className="text-2xl font-bold text-white mb-2">Plan Your Trip</h1>
+                <p className="text-sm text-white/90">Let's create your perfect journey</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Destination Section */}
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <FaMapMarkedAlt className="text-teal-500 text-lg" />
+                  <span className="text-sm font-medium text-gray-700">Destination</span>
+                </div>
+                <DestinationSelector value={destination} onChange={setDestination} />
+              </div>
+
+              {/* Dates Section */}
+              <div className="bg-white rounded-xl shadow-sm p-4 z-[990]">
+                <div className="flex items-center gap-3 mb-3">
+                  <FaCalendarAlt className="text-teal-500 text-lg" />
+                  <span className="text-sm font-medium text-gray-700">Travel Dates</span>
+                </div>
+                <DateRangePicker
+                  startDate={dateRange.startDate}
+                  endDate={dateRange.endDate}
+                  onChange={setDateRange}
+                />
+              </div>
+
+              {/* Travelers Section */}
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <FaUsers className="text-teal-500 text-lg" />
+                  <span className="text-sm font-medium text-gray-700">Travelers</span>
+                </div>
+                <TravelersSelector value={travelers} onChange={setTravelers} />
+              </div>
+
+              {/* Continue Button */}
+              <button
+                onClick={handleNext}
+                className="w-full bg-teal-600 text-white px-4 py-3 rounded-xl text-sm font-medium
+                         hover:bg-teal-700 transition-colors duration-200
+                         focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+              >
+                Continue
+              </button>
+            </div>
+          </>
+        ) : (
+          tripData.startDate && tripData.endDate ? (
+            <TravelPackages
+              tripData={{
+                ...tripData,
+                startDate: tripData.startDate,
+                endDate: tripData.endDate
+              }}
+              onBack={() => setCurrentStep('planning')}
             />
-            {/* Reduced overlay opacity from 0.4 to 0.25 */}
-            <div className="absolute inset-0 bg-black/25" />
-          </div>
-
-          <div className="relative z-10 h-full flex flex-col items-center justify-center">
-            <h1 className="text-2xl font-bold text-white mb-2">Plan Your Trip</h1>
-            <p className="text-sm text-white/90">Let's create your perfect journey</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {/* Destination Section */}
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <FaMapMarkedAlt className="text-teal-500 text-lg" />
-              <span className="text-sm font-medium text-gray-700">Destination</span>
-            </div>
-            <DestinationSelector value={destination} onChange={setDestination} />
-          </div>
-
-          {/* Dates Section */}
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <FaCalendarAlt className="text-teal-500 text-lg" />
-              <span className="text-sm font-medium text-gray-700">Travel Dates</span>
-            </div>
-            <DateRangePicker
-              startDate={dateRange.startDate}
-              endDate={dateRange.endDate}
-              onChange={setDateRange}
-            />
-          </div>
-
-          {/* Travelers Section */}
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <FaUsers className="text-teal-500 text-lg" />
-              <span className="text-sm font-medium text-gray-700">Travelers</span>
-            </div>
-            <TravelersSelector value={travelers} onChange={setTravelers} />
-          </div>
-
-          {/* Continue Button */}
-          <button
-            onClick={handleNext}
-            className="w-full bg-teal-600 text-white px-4 py-3 rounded-xl text-sm font-medium
-                     hover:bg-teal-700 transition-colors duration-200
-                     focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-          >
-            Continue
-          </button>
-        </div>
+          ) : null
+        )}
       </div>
     </div>
   );

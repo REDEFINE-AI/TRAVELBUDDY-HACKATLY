@@ -1,84 +1,97 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-export default function Home() {
+let hasSeenLoadingScreen = false;
+
+const LoadingScreen = () => (
+  <motion.div
+    initial={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.5 }}
+    className="fixed inset-0 bg-white flex items-center justify-center z-50"
+  >
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      className="w-72 h-72 relative"
+    >
+      <Image
+        src="/images/TravelBuddy-Logo.svg"
+        alt="TravelBuddy Logo"
+        fill
+        className="object-contain"
+        priority
+      />
+    </motion.div>
+  </motion.div>
+);
+
+const WelcomePage = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(!hasSeenLoadingScreen);
+
+  useEffect(() => {
+    if (!hasSeenLoadingScreen) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+        hasSeenLoadingScreen = true;
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   return (
-    <div>
-      <div
-        className="mt-2 bg-gray-100 border border-gray-200 text-sm text-gray-800 rounded-lg p-4 dark:bg-white/10 dark:border-white/20 dark:text-white"
-        role="alert"
-        tabIndex={-1}
-        aria-labelledby="hs-soft-color-dark-label"
-      >
-        <span id="hs-soft-color-dark-label" className="font-bold">
-          Dark
-        </span>
-        alert! You should check in on some of those fields below.
-      </div>
-      <div
-        className="mt-2 bg-gray-50 border border-gray-200 text-sm text-gray-600 rounded-lg p-4 dark:bg-white/10 dark:border-white/10 dark:text-neutral-400"
-        role="alert"
-        tabIndex={-1}
-        aria-labelledby="hs-soft-color-secondary-label"
-      >
-        <span id="hs-soft-color-secondary-label" className="font-bold">
-          Secondary
-        </span>
-        alert! You should check in on some of those fields below.
-      </div>
-      <div
-        className="mt-2 bg-blue-100 border border-blue-200 text-sm text-blue-800 rounded-lg p-4 dark:bg-blue-800/10 dark:border-blue-900 dark:text-blue-500"
-        role="alert"
-        tabIndex={-1}
-        aria-labelledby="hs-soft-color-info-label"
-      >
-        <span id="hs-soft-color-info-label" className="font-bold">
-          Info
-        </span>
-        alert! You should check in on some of those fields below.
-      </div>
-      <div
-        className="mt-2 bg-teal-100 border border-teal-200 text-sm text-teal-800 rounded-lg p-4 dark:bg-teal-800/10 dark:border-teal-900 dark:text-teal-500"
-        role="alert"
-        tabIndex={-1}
-        aria-labelledby="hs-soft-color-success-label"
-      >
-        <span id="hs-soft-color-success-label" className="font-bold">
-          Success
-        </span>
-        alert! You should check in on some of those fields below.
-      </div>
-      <div
-        className="mt-2 bg-red-100 border border-red-200 text-sm text-red-800 rounded-lg p-4 dark:bg-red-800/10 dark:border-red-900 dark:text-red-500"
-        role="alert"
-        tabIndex={-1}
-        aria-labelledby="hs-soft-color-danger-label"
-      >
-        <span id="hs-soft-color-danger-label" className="font-bold">
-          Danger
-        </span>
-        alert! You should check in on some of those fields below.
-      </div>
-      <div
-        className="mt-2 bg-yellow-100 border border-yellow-200 text-sm text-yellow-800 rounded-lg p-4 dark:bg-yellow-800/10 dark:border-yellow-900 dark:text-yellow-500"
-        role="alert"
-        tabIndex={-1}
-        aria-labelledby="hs-soft-color-warning-label"
-      >
-        <span id="hs-soft-color-warning-label" className="font-bold">
-          Warning
-        </span>
-        alert! You should check in on some of those fields below.
-      </div>
-      <div
-        className="mt-2 bg-white/10 border border-white/10 text-sm text-white rounded-lg p-4"
-        role="alert"
-        tabIndex={-1}
-        aria-labelledby="hs-soft-color-light-label"
-      >
-        <span id="hs-soft-color-light-label" className="font-bold">
-          Light
-        </span>
-        alert! You should check in on some of those fields below.
-      </div>
+    <div className="bg-teal">
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <LoadingScreen />
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="min-h-screen bg-gradient-to-b from-teal-500 to-teal-700 p-6 flex flex-col items-center justify-center"
+          >
+            <div className="w-full max-w-md space-y-8">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-white mb-4">
+                  Welcome to TravelBuddy
+                </h1>
+                <p className="text-teal-100 mb-8">
+                  Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quis facilis earum corrupti sequi labore. Explicabo mollitia voluptas ad.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-white text-teal-700 rounded-lg py-3 px-4 font-semibold shadow-lg"
+                  onClick={() => router.push("/login")}
+                >
+                  Sign In
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-black text-white rounded-lg py-3 px-4 font-semibold shadow-lg"
+                  onClick={() => router.push("/signup")}
+                >
+                  Create Account
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-}
+};
+
+export default WelcomePage;
