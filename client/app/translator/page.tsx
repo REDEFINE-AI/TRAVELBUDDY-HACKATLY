@@ -1,8 +1,17 @@
-import React from "react";
-import { FaMicrophone } from "react-icons/fa6";
-import { LuAudioLines } from "react-icons/lu";
+import axios from 'axios';
+import { FaMicrophone } from 'react-icons/fa6';
+import { LuAudioLines } from 'react-icons/lu';
 
 export default function Page() {
+  const response = axios
+    .post('/user', {
+    })
+    .then(response => {
+      console.log(response);
+    })
+    .catch(error => {
+      console.log(error);
+    });
   return (
     <>
       <section className="w-full h-screen bg-white px-4 pt-4">
