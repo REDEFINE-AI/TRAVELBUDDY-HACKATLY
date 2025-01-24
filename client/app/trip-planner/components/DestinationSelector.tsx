@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import Select from "react-select";
-import { debounce } from "lodash";
+import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
+import { debounce } from 'lodash';
+import Image from 'next/image';
 
 interface Place {
   label: string;
   value: string;
-  image: string;
+  image?: string;
 }
 
 interface DestinationSelectorProps {
@@ -20,10 +21,10 @@ const DestinationSelector: React.FC<DestinationSelectorProps> = ({ value, onChan
 
   // Popular destinations - will be populated with images on component mount
   const [popularDestinations, setPopularDestinations] = useState<Place[]>([
-    { label: "Paris, France", value: "paris", image: "" },
-    { label: "Tokyo, Japan", value: "tokyo", image: "" },
-    { label: "New York, USA", value: "new-york", image: "" },
-    { label: "London, UK", value: "london", image: "" }
+    { label: 'Paris, France', value: 'paris' },
+    { label: 'Tokyo, Japan', value: 'tokyo' },
+    { label: 'New York, USA', value: 'new-york' },
+    { label: 'London, UK', value: 'london' },
   ]);
 
   // Format location name to show only city and country
@@ -38,35 +39,41 @@ const DestinationSelector: React.FC<DestinationSelectorProps> = ({ value, onChan
   // Fetch images for popular destinations on component mount
   useEffect(() => {
     const fetchPopularImages = async () => {
-      const updatedDestinations = await Promise.all(
-        popularDestinations.map(async (dest) => {
-          try {
-            const response = await fetch(
-              `https://api.unsplash.com/search/photos?query=${dest.label}&client_id=${process.env.NEXT_PUBLIC_UNSPLASH_API_KEY}&per_page=1`
-            );
-            const data = await response.json();
-            return {
-              ...dest,
-              image: data.results[0]?.urls?.small || "/api/placeholder/400/300"
-            };
-          } catch (error) {
-            console.error(`Error fetching image for ${dest.label}:`, error);
-            return { ...dest, image: "/api/placeholder/400/300" };
-          }
-        })
-      );
-      setPopularDestinations(updatedDestinations);
+      try {
+        const updatedDestinations = await Promise.all(
+          popularDestinations.map(async dest => {
+            try {
+              const response = await fetch(
+                `https://api.unsplash.com/search/photos?query=${dest.label}&client_id=${process.env.NEXT_PUBLIC_UNSPLASH_API_KEY}&per_page=1`,
+              );
+              const data = await response.json();
+              return {
+                ...dest,
+                image: data.results[0]?.urls?.small || '/placeholder.jpg',
+              };
+            } catch (error) {
+              console.error(`Error fetching image for ${dest.label}:`, error);
+              return { ...dest, image: '/placeholder.jpg' };
+            }
+          }),
+        );
+        setSuggestions(updatedDestinations);
+      } catch (error) {
+        console.error('Error fetching popular destinations:', error);
+      }
     };
 
-    fetchPopularImages();
-  }, []);
+    if (isFocused && suggestions.length === 0) {
+      fetchPopularImages();
+    }
+  }, [isFocused]);
 
   const fetchPlacesWithImages = async (query: string) => {
     setIsLoading(true);
     try {
       // Fetch locations from LocationIQ
       const locationResponse = await fetch(
-        `https://api.locationiq.com/v1/autocomplete.php?key=${process.env.NEXT_PUBLIC_LOCATIONIQ_API_KEY}&q=${query}&limit=4&dedupe=1&format=json`
+        `https://api.locationiq.com/v1/autocomplete.php?key=${process.env.NEXT_PUBLIC_LOCATIONIQ_API_KEY}&q=${query}&limit=4&dedupe=1&format=json`,
       );
       const locations = await locationResponse.json();
 
@@ -77,24 +84,24 @@ const DestinationSelector: React.FC<DestinationSelectorProps> = ({ value, onChan
             const formattedName = formatLocationName(location.display_name);
             const searchQuery = formattedName.split(',')[0]; // Use only city name for image search
             const imageResponse = await fetch(
-              `https://api.unsplash.com/search/photos?query=${searchQuery}&client_id=${process.env.NEXT_PUBLIC_UNSPLASH_API_KEY}&per_page=1`
+              `https://api.unsplash.com/search/photos?query=${searchQuery}&client_id=${process.env.NEXT_PUBLIC_UNSPLASH_API_KEY}&per_page=1`,
             );
             const imageData = await imageResponse.json();
-            
+
             return {
               label: formattedName,
               value: location.place_id,
-              image: imageData.results[0]?.urls?.small || "/api/placeholder/400/300"
+              image: imageData.results[0]?.urls?.small || '/placeholder.jpg',
             };
           } catch (error) {
             console.error('Error fetching image:', error);
             return {
               label: formatLocationName(location.display_name),
               value: location.place_id,
-              image: "/api/placeholder/400/300"
+              image: '/placeholder.jpg',
             };
           }
-        })
+        }),
       );
 
       setSuggestions(placesWithImages);
@@ -128,42 +135,25 @@ const DestinationSelector: React.FC<DestinationSelectorProps> = ({ value, onChan
     setIsFocused(false);
   };
 
-  const customOption = ({ data, innerProps }: any) => (
-    <div
-      {...innerProps}
-      className="flex items-center p-3 cursor-pointer hover:bg-gray-50"
-    >
-      <img
-        src={data.image}
-        alt={data.label}
-        className="w-16 h-12 object-cover rounded-md mr-3"
-      />
-      <div className="flex flex-col">
-        <span className="font-medium text-gray-800">{data.label}</span>
-      </div>
-    </div>
-  );
-
   const customStyles = {
     control: (base: any) => ({
       ...base,
-      minHeight: '50px',
-      borderRadius: '0.5rem',
+      minHeight: '40px',
+      borderRadius: '0.75rem',
       borderColor: '#e2e8f0',
-      '&:hover': {
-        borderColor: '#cbd5e1'
-      }
+      boxShadow: 'none',
+      fontSize: '0.875rem',
     }),
     menu: (base: any) => ({
       ...base,
-      borderRadius: '0.5rem',
-      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-      overflow: 'hidden'
+      borderRadius: '0.75rem',
+      overflow: 'hidden',
+      fontSize: '0.875rem',
     }),
     option: (base: any) => ({
       ...base,
-      padding: 0
-    })
+      padding: 0,
+    }),
   };
 
   return (
@@ -174,12 +164,30 @@ const DestinationSelector: React.FC<DestinationSelectorProps> = ({ value, onChan
       <Select
         value={value}
         onChange={onChange}
-        options={suggestions.length > 0 ? suggestions : (isFocused ? popularDestinations : [])}
+        options={suggestions.length > 0 ? suggestions : isFocused ? popularDestinations : []}
         onInputChange={handleInputChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
         isLoading={isLoading}
-        components={{ Option: customOption }}
+        components={{
+          Option: ({ data, innerProps }: any) => (
+            <div {...innerProps} className="flex items-center p-2 cursor-pointer hover:bg-gray-50">
+              {data.image && (
+                <div className="relative w-12 h-8 rounded-lg overflow-hidden mr-2">
+                  <Image
+                    src={data.image}
+                    alt={data.label}
+                    fill
+                    sizes="(max-width: 48px) 100vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              )}
+              <span className="text-sm text-gray-800">{data.label}</span>
+            </div>
+          ),
+        }}
         styles={customStyles}
         placeholder="Search destinations..."
         isClearable
