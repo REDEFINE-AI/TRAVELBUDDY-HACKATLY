@@ -48,7 +48,7 @@ interface LoginFormData {
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => router.push("/welcome")}
+          onClick={() => router.push("/")}
           className="text-white"
         >
           <FiArrowLeft size={16} />

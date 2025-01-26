@@ -258,7 +258,7 @@ const ModalContent: React.FC = () => {
 };
 
 // Add test image URL
-const TEST_IMAGE_URL = "https://keralabekalhouseboat.com/wp-content/uploads/2019/09/bekal-blog-1.jpg";
+const TEST_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/640px-Taj_Mahal_%28Edited%29.jpeg";
 
 // Updated urlToBase64 function with proper error handling
 const urlToBase64 = async (url: string): Promise<string> => {
@@ -395,34 +395,45 @@ const ARExplorer: React.FC = () => {
     setCaptureState({ ...captureState, isScanning: true, isProcessing: true });
 
     try {
-      console.log("Starting AI scan with test image...");
+      console.log("Starting AI scan...");
+      
+      // First validate API key
+      const apiKey = process.env.NEXT_PUBLIC_RAPID_API_KEY;
+      if (!apiKey) {
+        throw new Error('API key is not configured');
+      }
+
+      // Convert test image to base64
+      const base64Image = await urlToBase64(TEST_IMAGE_URL);
       
       // Prepare the request body
       const requestBody = {
-        image: TEST_IMAGE_URL,
+        image: base64Image, // Send base64 string instead of URL
         language: 'en'
       };
 
-      console.log("Preparing API request with body:", requestBody);
+      console.log("Making API request...");
       
       const visionResponse = await fetch('https://ultimate-cloud-vision-image.p.rapidapi.com/google/cloudvision/landmarks', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'X-RapidAPI-Key': process.env.NEXT_PUBLIC_RAPIDAPI_KEY || '',
+          'X-RapidAPI-Key': apiKey,
           'X-RapidAPI-Host': 'ultimate-cloud-vision-image.p.rapidapi.com'
         },
         body: JSON.stringify(requestBody)
       });
 
+      // Detailed error logging
       if (!visionResponse.ok) {
         const errorText = await visionResponse.text();
-        console.error("API Response not OK:", {
+        console.error("API Error Details:", {
           status: visionResponse.status,
           statusText: visionResponse.statusText,
+          headers: Object.fromEntries(visionResponse.headers.entries()),
           error: errorText
         });
-        throw new Error(`API request failed: ${visionResponse.statusText || errorText}`);
+        throw new Error(`API request failed (${visionResponse.status}): ${errorText}`);
       }
 
       const visionData = await visionResponse.json();
@@ -471,11 +482,10 @@ const ARExplorer: React.FC = () => {
 
     } catch (err) {
       console.error("AI scan failed:", err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setCameraState({ 
         ...cameraState, 
-        error: err instanceof Error 
-          ? `Analysis failed: ${err.message}` 
-          : "Failed to analyze location. Please try again." 
+        error: `Analysis failed: ${errorMessage}. Please try again.`
       });
     } finally {
       setCaptureState({
@@ -623,7 +633,7 @@ const ARExplorer: React.FC = () => {
 
   // Add a function to validate your API key is set
   const validateApiKey = () => {
-    const apiKey = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_RAPID_API_KEY;
     if (!apiKey) {
       console.error("RapidAPI key is not set in environment variables!");
       return false;

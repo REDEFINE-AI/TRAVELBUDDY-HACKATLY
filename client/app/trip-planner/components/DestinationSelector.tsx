@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState, useEffect, useId } from 'react';
 import Select from 'react-select';
 import { debounce } from 'lodash';
 import Image from 'next/image';
@@ -26,6 +28,9 @@ const DestinationSelector: React.FC<DestinationSelectorProps> = ({ value, onChan
     { label: 'New York, USA', value: 'new-york' },
     { label: 'London, UK', value: 'london' },
   ]);
+
+  // Generate a stable ID
+  const instanceId = useId();
 
   // Format location name to show only city and country
   const formatLocationName = (displayName: string): string => {
@@ -162,6 +167,7 @@ const DestinationSelector: React.FC<DestinationSelectorProps> = ({ value, onChan
         Where would you like to go?
       </label>
       <Select
+        instanceId={instanceId}
         value={value}
         onChange={onChange}
         options={suggestions.length > 0 ? suggestions : isFocused ? popularDestinations : []}
