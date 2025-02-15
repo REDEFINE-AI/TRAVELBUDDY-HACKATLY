@@ -113,7 +113,7 @@ const TravelPackages = ({ tripData, onBack }: TravelPackagesProps) => {
 
   useEffect(() => {
     const controller = new AbortController();
-    
+
     const fetchPackages = async () => {
       if (!tripData.destination || !tripData.startDate || !tripData.endDate) {
         setError('Missing trip data');
@@ -124,7 +124,7 @@ const TravelPackages = ({ tripData, onBack }: TravelPackagesProps) => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await fetch('/api/generate-packages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -136,18 +136,21 @@ const TravelPackages = ({ tripData, onBack }: TravelPackagesProps) => {
           }),
           signal: controller.signal
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch packages');
         }
 
         const data = await response.json();
-        
+
+        console.log(data);
+
         if (!data.packages || !Array.isArray(data.packages) || data.packages.length === 0) {
           throw new Error('No packages available');
         }
 
         setPackages(data.packages);
+        console.log(data.packages);
         setSelectedPackage(data.packages[0].id);
       } catch (error: any) {
         if (error.name === 'AbortError') return;
@@ -458,4 +461,4 @@ const TravelPackages = ({ tripData, onBack }: TravelPackagesProps) => {
   );
 };
 
-export default TravelPackages; 
+export default TravelPackages;

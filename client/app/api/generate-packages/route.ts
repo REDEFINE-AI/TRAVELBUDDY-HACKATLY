@@ -125,7 +125,7 @@ async function fetchDestinationImage(destination: string): Promise<string> {
 
 async function generateAIPackages(destination: string, startDate: Date, endDate: Date, travelers: number) {
   try {
-    const prompt = `Create 3 travel packages (Budget, Comfort, and Luxury) for ${travelers} travelers to ${destination} from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}. 
+    const prompt = `Create 3 travel packages (Budget, Comfort, and Luxury) for ${travelers} travelers to ${destination} from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}.
     For each package include:
     - Specific hotel recommendations with price range
     - Daily activities with times and booking prices
@@ -168,6 +168,7 @@ async function generateAIPackages(destination: string, startDate: Date, endDate:
     });
 
     const content = completion.choices[0].message.content;
+    console.log(content);
     return content ? JSON.parse(content) : null;
   } catch (error) {
     console.error('AI Generation Error:', error);
@@ -227,13 +228,13 @@ export async function POST(request: Request) {
     }
 
     // Use fallback data if API calls failed
-    return NextResponse.json({ 
+    return NextResponse.json({
       packages: generateFallbackPackages(destination, startDate, endDate)
     });
 
   } catch (error) {
     console.error('Request processing error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       packages: generateFallbackPackages(requestData?.destination || 'Unknown', requestData?.startDate || '', requestData?.endDate || '')
     });
   }
@@ -371,4 +372,4 @@ function generateFallbackPackages(destination: string, startDate: string, endDat
     },
     itinerary: generateDefaultItinerary(startDate, endDate, destination)
   }];
-} 
+}

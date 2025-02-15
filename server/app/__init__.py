@@ -4,6 +4,7 @@ from app.db import engine
 from app.auth.auth import auth_router
 from app.dashboard.dashboard import dashboard_router
 from app.translator.translator import translator_router
+from app.trip.trip import trip_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -27,3 +28,4 @@ models.Base.metadata.create_all(bind=engine)
 app.include_router(auth_router, prefix="/auth")
 app.include_router(dashboard_router, prefix="/dashboard")
 app.include_router(translator_router, prefix="/translator")
+app.include_router(trip_router, prefix="/trip")

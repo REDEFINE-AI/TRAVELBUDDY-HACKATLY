@@ -59,7 +59,7 @@ export default function useAudioRecorder() {
               return currentChunks;
             }
 
-            const audioBlob = new Blob(currentChunks, { type: 'audio/webm' });
+            const audioBlob = new Blob(currentChunks, { type: 'audio/wav' });
             const audioUrl = URL.createObjectURL(audioBlob);
 
             setAudioFile({
@@ -147,7 +147,7 @@ export default function useAudioRecorder() {
 
     // Create a timestamp for unique filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const fileName = `audio-recording-${timestamp}.webm`;
+    const fileName = `audio-recording-${timestamp}.wav`;
 
     // Create downloadable object
     return {
@@ -166,6 +166,6 @@ export default function useAudioRecorder() {
     stopRecording,
     pauseRecording,
     resumeRecording,
-    createDownloadableFile, 
+    createDownloadableFile,
   };
 }
