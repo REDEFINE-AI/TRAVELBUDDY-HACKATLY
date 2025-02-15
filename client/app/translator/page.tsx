@@ -2,13 +2,12 @@
 
 import useAudioRecorder from '@/hooks/audio-player';
 import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion,  } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { FaCircle, FaRegCopy } from 'react-icons/fa';
-import { FaKeyboard, FaMicrophone } from 'react-icons/fa6';
+import { FaMicrophone } from 'react-icons/fa6';
 import { MdPause, MdPlayArrow } from 'react-icons/md';
 import { IoLanguage } from "react-icons/io5";
-import { FaWaveSquare } from "react-icons/fa";
 import { LuAudioLines } from "react-icons/lu";
 import { Toaster, toast } from 'react-hot-toast';
 import { useSpeechSynthesis } from 'react-speech-kit';
@@ -56,12 +55,8 @@ export default function TranslatorTool() {
   const {
     isRecording,
     audioFile,
-    error: audioError,
     startRecording,
     stopRecording,
-    pauseRecording,
-    resumeRecording,
-    createDownloadableFile,
   } = useAudioRecorder();
 
   const languages = [
@@ -74,12 +69,8 @@ export default function TranslatorTool() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
-  const [data, setData] = useState<any>();
   const [language, setLanguage] = useState(languages[0].code);
-
   const { speak, speaking, supported } = useSpeechSynthesis();
-
-  // Remove initialChatData and update chatHistory state
   const [chatHistory, setChatHistory] = useState<Array<{
     id: string;
     original_text: string;
@@ -89,19 +80,19 @@ export default function TranslatorTool() {
     user_id?: string;
   }>>([]);
 
-  // Add initial data fetch
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:8000/translator');
-        setChatHistory(response.data);
-      } catch (error) {
-        console.error('Error fetching initial data:', error);
-        toast.error('Failed to fetch translation history');
-      }
-    };
+  // Fetch chat history
+  const fetchChatHistory = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/translator');
+      setChatHistory(response.data);
+    } catch (error) {
+      console.error('Error fetching translation history:', error);
+      toast.error('Failed to fetch translation history');
+    }
+  };
 
-    fetchInitialData();
+  useEffect(() => {
+    fetchChatHistory();
   }, []);
 
   async function getTranslation() {
@@ -118,13 +109,14 @@ export default function TranslatorTool() {
     formData.append('target_language', language);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/translator', formData, {
+      await axios.post('http://127.0.0.1:8000/translator', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       
-      setData(response.data); // Store the response data
+      // Fetch updated chat history immediately after successful translation
+      await fetchChatHistory();
       toast.success('Translation completed!');
     } catch (error) {
       console.error(error);
@@ -134,25 +126,6 @@ export default function TranslatorTool() {
       setLoading(false);
     }
   }
-
-  // Add this useEffect to make API call when translation data changes
-  useEffect(() => {
-    if (data) {
-      // Make your API call here
-      const fetchData = async () => {
-        try {
-          const response = await axios.get('http://127.0.0.1:8000/translator');
-          // Handle the response data
-          setChatHistory(prevHistory => [...prevHistory, response.data]);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-          toast.error('Failed to fetch updated data');
-        }
-      };
-
-      fetchData();
-    }
-  }, [data]); // This effect runs whenever 'data' changes
 
   const handleSpeak = (text: string, targetLanguage: string) => {
     if (supported) {
