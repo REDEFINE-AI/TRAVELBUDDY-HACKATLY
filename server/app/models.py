@@ -64,12 +64,6 @@ class Activity(Base):
             name="activity_categories",
         )
     )
-    itinerary_item_id = Column(String, ForeignKey("itinerary_items.id"))
-    trip_id = Column(String, ForeignKey("trips.id"))
-
-    # Relationships
-    itinerary_item = relationship("ItineraryItem", back_populates="activities")
-    trip = relationship("Trip", back_populates="activities")
 
 
 class Hotel(Base):
@@ -83,12 +77,16 @@ class Hotel(Base):
     amenities = Column(JSON)
     image = Column(String)
     booking_url = Column(String)
-    itinerary_item_id = Column(String, ForeignKey("itinerary_items.id"))
-    trip_id = Column(String, ForeignKey("trips.id"))
 
-    # Relationships
-    itinerary_item = relationship("ItineraryItem", back_populates="hotels")
-    trip = relationship("Trip", back_populates="hotel")
+
+class Sight(Base):
+    __tablename__ = "sights"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    name = Column(String)
+    location = Column(String)
+    description = Column(String)
+    image = Column(String)
 
 
 class Trip(Base):
@@ -105,8 +103,6 @@ class Trip(Base):
 
     # Relationships
     user = relationship("User", back_populates="trips")
-    hotel = relationship("Hotel", back_populates="trip", uselist=False)
-    activities = relationship("Activity", back_populates="trip")
     places = relationship("Place", back_populates="trip")
     itinerary = relationship("Itinerary", back_populates="trip")
 
@@ -168,20 +164,20 @@ class ItineraryItem(Base):
 
     # Relationships
     itinerary = relationship("Itinerary", back_populates="items")
-    activities = relationship("Activity", back_populates="itinerary_item")
-    hotels = relationship("Hotel", back_populates="itinerary_item")
-    sights = relationship("Sight", back_populates="itinerary_item")
+    links = relationship("ItineraryItemLink", back_populates="itinerary_item")
 
 
-class Sight(Base):
-    __tablename__ = "sights"
+class ItineraryItemLink(Base):
+    __tablename__ = "itinerary_item_links"
 
     id = Column(String, primary_key=True, default=generate_uuid, index=True)
-    name = Column(String)
-    location = Column(String)
-    description = Column(String)
-    image = Column(String)
     itinerary_item_id = Column(String, ForeignKey("itinerary_items.id"))
+    activity_id = Column(String, ForeignKey("activities.id"), nullable=True)
+    sight_id = Column(String, ForeignKey("sights.id"), nullable=True)
+    hotel_id = Column(String, ForeignKey("hotels.id"), nullable=True)
 
     # Relationships
-    itinerary_item = relationship("ItineraryItem", back_populates="sights")
+    itinerary_item = relationship("ItineraryItem", back_populates="links")
+    activity = relationship("Activity")
+    sight = relationship("Sight")
+    hotel = relationship("Hotel")

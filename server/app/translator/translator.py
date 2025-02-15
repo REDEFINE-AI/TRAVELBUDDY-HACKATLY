@@ -89,3 +89,23 @@ async def translate_audio(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing audio: {str(e)}")
+
+
+@translator_router.get(
+    "/",
+    summary="Get last 5 translated messages",
+)
+async def get_recent_translations(db: Session = Depends(get_db)):
+    try:
+        translations = (
+            db.query(Translator)
+            .filter(Translator.user_id == "67c38c54-e9f5-4126-81f3-386dcce7cf52")
+            .order_by(Translator.created_at.desc())
+            .limit(5)
+            .all()
+        )
+        return jsonable_encoder(translations)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving translations: {str(e)}"
+        )
