@@ -46,7 +46,7 @@ const TravelersSelector: React.FC<TravelersSelectorProps> = ({ value, onChange }
 
       {/* Custom option in full width */}
       <div className="w-full">
-        <button
+        <div
           className={`w-full flex items-center justify-between p-2.5 rounded-lg border transition-all ${
             value > 4
               ? 'border-teal-500 bg-teal-50 text-teal-700'
@@ -60,27 +60,21 @@ const TravelersSelector: React.FC<TravelersSelectorProps> = ({ value, onChange }
             <span className="ml-2 text-sm font-medium">{customOption.label}</span>
           </div>
           <div className="flex items-center space-x-3">
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onChange(Math.max(1, value - 1));
-              }}
-              className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200"
+            <div
+              onClick={() => onChange(Math.max(1, value - 1))}
+              className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer"
             >
               -
-            </button>
+            </div>
             <span className="w-6 text-center text-sm font-medium text-gray-700">{value}</span>
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onChange(value + 1);
-              }}
-              className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200"
+            <div
+              onClick={() => onChange(value + 1)}
+              className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer"
             >
               +
-            </button>
+            </div>
           </div>
-        </button>
+        </div>
       </div>
     </div>
   );
