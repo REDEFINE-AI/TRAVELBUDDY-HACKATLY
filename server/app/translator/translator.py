@@ -6,6 +6,10 @@ import io
 import os
 from openai import OpenAI
 from app.auth.auth_bearer import JWTBearer
+from app.db import get_db
+from sqlalchemy.orm import Session
+from app.models import Translator, User
+import uuid
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -37,11 +41,11 @@ def translate_text(target_language: str, text: str) -> dict:
         raise HTTPException(status_code=500, detail=f"Translation error: {str(e)}")
 
 
-@translator_router.post(
-    "/", dependencies=[Depends(JWTBearer())], summary="Transcribe and translate audio"
-)
+@translator_router.post("/", summary="Transcribe and translate audio")
 async def translate_audio(
-    audio_file: UploadFile = File(...), target_language: str = Form(...)
+    audio_file: UploadFile = File(...),
+    target_language: str = Form(...),
+    db: Session = Depends(get_db),
 ):
     try:
         # Read the file content into bytes
@@ -68,6 +72,18 @@ async def translate_audio(
             "source_language": translation_result["detected_source_language"],
             "target_language": target_language,
         }
+
+        # Save the translation data to the database
+        new_translation = Translator(
+            id=str(uuid.uuid4()),  # Convert UUID to string
+            original_text=transcribed_text,
+            translation=translation_result["translated_text"],
+            target_language=target_language,
+            user_id="67c38c54-e9f5-4126-81f3-386dcce7cf52",  # Ensure this is a string
+        )
+        db.add(new_translation)
+        db.commit()
+        db.refresh(new_translation)
 
         return jsonable_encoder(data)
 

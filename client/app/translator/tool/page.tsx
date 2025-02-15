@@ -2,11 +2,14 @@
 
 import useAudioRecorder from '@/hooks/audio-player';
 import axios from 'axios';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { FaCircle } from 'react-icons/fa';
+import { FaCircle, FaRegCopy } from 'react-icons/fa';
 import { FaKeyboard, FaMicrophone } from 'react-icons/fa6';
 import { MdPause, MdPlayArrow } from 'react-icons/md';
+import { IoLanguage } from "react-icons/io5";
+import { FaWaveSquare } from "react-icons/fa";
+import { LuAudioLines } from "react-icons/lu";
 
 interface AudioPlayerProps {
   isPlaying: boolean;
@@ -67,7 +70,7 @@ export default function TranslatorTool() {
   ];
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<any>(null);
   const [data, setData] = useState<any>();
   const [language, setLanguage] = useState(languages[0].code);
 
@@ -102,78 +105,198 @@ export default function TranslatorTool() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   {
-    error && <p className="text-red-500">{error?.response?.data}</p>;
+    error && <p className="text-red-500">{typeof error === 'string' ? error : error?.response?.data}</p>;
   }
 
   return (
-    <section className="w-full h-screen bg-white px-4 pt-4 grid place-items-center text-black">
-      <h1 className="text-2xl">Live Translator</h1>
-      {audioFile.blob && <p>Audio file: {audioFile.blob.size} bytes</p>}
-      {audioError && <p className="text-red-500">{audioError}</p>}
-      <div
-        id="audio_player"
-        className="w-full flex gap-4 flex-col  rounded-md p-2  items-start justify-between"
-      >
-        <AudioPlayer isPlaying={isPlaying} onToggle={() => console.log('playing')} />
-
-        <div className="flex items-center gap-3">
-          <p>Language:</p>
-          <span>🇪🇸 Spanish</span>
-        </div>
-      </div>
-      <div className="flex flex-col gap-5">
-        <div id="translated_language" className="p-3 bg-teal-50 rounded-lg">
-          <p>{data?.translation}</p>
-        </div>
-      </div>
-      <div>{error}</div>
-      <div className="space-y-5">
-        <div className="flex items-center justify-center gap-4">
-          <h3>Translated language to:</h3>
-          <Dropdown text={languages[0].name} options={languages} onSelect={setLanguage} />
-        </div>
-
-        {isRecording ? (
-          <div className="flex items-center justify-center flex-col">
-            <button
-              type="button"
-              onClick={() => stopRecording()}
-              className="h-16 w-16 rounded-xl bg-red-500 flex items-center justify-center text-white shadow-md"
+    <section className="w-full min-h-screen bg-white">
+      <div className="absolute inset-0 bg-gradient-to-b from-teal-50/50 to-white" />
+      
+      <div className="relative max-w-4xl mx-auto px-4 py-12 space-y-8">
+        {/* Header with animation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-3"
+        >
+          <div className="flex justify-center">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="bg-teal-500 p-3 rounded-2xl shadow-lg"
             >
-              <FaCircle size={24} />
-            </button>
-            <p className="text-center">Speak</p>
+              <IoLanguage className="w-8 h-8 text-white" />
+            </motion.div>
           </div>
-        ) : (
-          <div className="flex items-center justify-center flex-col">
-            <button
-              type="button"
-              onClick={() => startRecording()}
-              className="h-16 w-16 rounded-xl bg-teal-500 flex items-center justify-center text-white shadow-md"
+          <h1 className="text-3xl font-bold text-teal-900">Live Translator</h1>
+          <p className="text-teal-600">Professional voice translation in real-time</p>
+        </motion.div>
+
+        {/* Translation Result Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-teal-100 overflow-hidden"
+        >
+          {/* Language Selection - Integrated into card header */}
+          <div className="border-b border-teal-100 p-4">
+            <div className="flex items-center justify-end gap-4">
+              <h3 className="text-teal-900 font-medium">Translate to:</h3>
+              <Dropdown text={languages[0].name} options={languages} onSelect={setLanguage} />
+            </div>
+          </div>
+
+          <div className="p-8">
+            <AnimatePresence mode="wait">
+              {loading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center gap-4 py-12"
+                >
+                  <LuAudioLines className="w-12 h-12 text-teal-500 animate-pulse" />
+                  <p className="text-teal-600">Processing audio...</p>
+                </motion.div>
+              ) : data?.translation ? (
+                <motion.div
+                  key="result"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-6"
+                >
+                  <div className="flex items-start justify-between">
+                    <p className="text-xl text-teal-900 leading-relaxed flex-1">{data.translation}</p>
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="p-2 text-teal-500 hover:text-teal-600"
+                      onClick={() => navigator.clipboard.writeText(data.translation)}
+                    >
+                      <FaRegCopy size={20} />
+                    </motion.button>
+                  </div>
+                  
+                  {/* Dynamic Audio Waveform */}
+                  <div className="flex items-center justify-center h-16 gap-1">
+                    {[...Array(32)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        animate={{
+                          height: isPlaying ? `${Math.random() * 100}%` : "20%"
+                        }}
+                        transition={{
+                          duration: 0.5,
+                          repeat: isPlaying ? Infinity : 0,
+                          repeatType: "reverse"
+                        }}
+                        className="w-1.5 bg-teal-500/80 rounded-full"
+                      />
+                    ))}
+                  </div>
+                  
+                  <AudioPlayer isPlaying={isPlaying} onToggle={() => setIsPlaying(!isPlaying)} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-16 space-y-4"
+                >
+                  <LuAudioLines className="w-16 h-16 text-teal-200 mx-auto" />
+                  <p className="text-teal-600">Your translation will appear here</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* Recording Controls */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col items-center gap-6"
+        >
+          <div className="relative">
+            <AnimatePresence>
+              {isRecording && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  className="absolute -inset-4 bg-teal-100 rounded-full"
+                  style={{ zIndex: -1 }}
+                />
+              )}
+            </AnimatePresence>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => isRecording ? stopRecording() : startRecording()}
+              className={`h-20 w-20 rounded-full flex items-center justify-center text-white shadow-lg ${
+                isRecording ? 'bg-red-500' : 'bg-teal-500'
+              }`}
             >
-              <FaMicrophone size={24} />
-            </button>
-            <p className="text-center">Recording</p>
+              {isRecording ? <FaCircle size={28} /> : <FaMicrophone size={28} />}
+            </motion.button>
           </div>
-        )}
-        {audioFile.url && <audio src={audioFile.url} controls className="w-full max-w-md" />}
-        <button onClick={getTransaltion}>Translate</button>
+          
+          <motion.p 
+            animate={{ opacity: 1 }}
+            className="text-teal-700 font-medium"
+          >
+            {isRecording ? 'Tap to stop recording' : 'Tap to start recording'}
+          </motion.p>
+          
+          <AnimatePresence>
+            {audioFile.blob && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={getTransaltion}
+                className="px-8 py-3 bg-teal-500 text-white rounded-xl shadow-lg"
+              >
+                Translate Audio
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Error Messages */}
+        <AnimatePresence>
+          {(error || audioError) && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="bg-red-50 text-red-500 p-4 rounded-xl text-center border border-red-100"
+            >
+              {error?.toString() || audioError}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
 }
 
-const Dropdown = ({
-  text,
-  options,
-  onSelect, // This prop is the callback to pass selected option back to parent
-}: {
+interface DropdownProps {
   text: string;
-  options: { code: string; name: string }[];
-  onSelect: (selectedCode: string) => void; // Function type for passing selected code
-}) => {
-  const [option, setOption] = useState('en'); // Default option
-  const [isOpen, setIsOpen] = useState(false); // State to toggle the dropdown visibility
+  options: { code: string; name: string; }[];
+  onSelect: (code: string) => void;
+}
+
+const Dropdown: React.FC<DropdownProps> = ({ text, options, onSelect }) => {
+  const [option, setOption] = useState('en');
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleToggle = () => {
     setIsOpen(prev => !prev);
@@ -181,16 +304,16 @@ const Dropdown = ({
 
   const handleOptionSelect = (code: string) => {
     setOption(code);
-    setIsOpen(false); // Close the dropdown after selecting an option
-    onSelect(code); // Pass the selected code to the parent component
+    setIsOpen(false);
+    onSelect(code);
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-[999]">
       <button
         id="hs-dropdown-transform-style"
         type="button"
-        className="hs-dropdown-toggle py-1 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 capitalize"
+        className="py-2 px-4 inline-flex items-center gap-2 text-sm font-medium rounded-lg border border-teal-200 bg-white text-teal-900 shadow-sm hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
         aria-haspopup="menu"
         aria-expanded={isOpen ? 'true' : 'false'}
         aria-label="Dropdown"
@@ -218,20 +341,15 @@ const Dropdown = ({
       </button>
 
       {isOpen && (
-        <div
-          className="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-100 z-10 absolute mt-2 origin-top-left min-w-60 bg-white shadow-md rounded-lg dark:bg-neutral-800 dark:border dark:border-neutral-700 dark:divide-neutral-700"
-          role="menu"
-          aria-orientation="vertical"
-          aria-labelledby="hs-dropdown-transform-style"
-        >
-          <div className="p-1 space-y-0.5">
-            {options.map(option_text => (
+        <div className="absolute mt-2 w-48 bg-white rounded-lg shadow-lg border border-teal-100 z-[999]">
+          <div className="p-1">
+            {options.map(option => (
               <button
-                key={option_text.code}
-                onClick={() => handleOptionSelect(option_text.code)}
-                className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700"
+                key={option.code}
+                onClick={() => handleOptionSelect(option.code)}
+                className="w-full text-left px-4 py-2 text-sm text-teal-900 hover:bg-teal-50 rounded-md transition-colors"
               >
-                {option_text.name}
+                {option.name}
               </button>
             ))}
           </div>
