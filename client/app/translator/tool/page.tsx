@@ -65,11 +65,11 @@ export default function TranslatorTool() {
   } = useAudioRecorder();
 
   const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'hi', name: 'Hindi' },
-    { code: 'ml', name: 'Malayalam' },
+    { code: 'en-US', name: 'English' },
+    { code: 'fr-FR', name: 'French' },
+    { code: 'de-DE', name: 'German' },
+    { code: 'hi-IN', name: 'Hindi' },
+    { code: 'ml-IN', name: 'Malayalam' },
   ];
 
   const [loading, setLoading] = useState(false);
@@ -115,11 +115,18 @@ export default function TranslatorTool() {
       return;
     }
     
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    // Get the full language object
+    const selectedLang = languages.find(lang => lang.code.startsWith(language));
+    
     speak({ 
       text, 
-      lang: language,
-      rate: 1,
-      pitch: 1
+      lang: selectedLang?.code || 'en-US',
+      rate: 0.9,     // Slightly slower rate for better clarity
+      pitch: 1.0,    // Natural pitch
+      volume: 1.0    // Maximum volume
     });
   };
 
@@ -206,7 +213,12 @@ export default function TranslatorTool() {
                       <motion.button 
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
-                        className={`p-2 ${speaking ? 'text-teal-600 bg-teal-50' : 'text-teal-500'} hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors`}
+                        disabled={speaking}
+                        className={`p-2 rounded-lg transition-colors ${
+                          speaking 
+                            ? 'bg-teal-100 text-teal-600' 
+                            : 'text-teal-500 hover:text-teal-600 hover:bg-teal-50'
+                        }`}
                         onClick={() => handleSpeak(data.translation)}
                       >
                         <LuAudioLines size={20} />
@@ -305,19 +317,7 @@ export default function TranslatorTool() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Error Messages */}
-        <AnimatePresence>
-          {(error || audioError) && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="bg-red-50 text-red-500 p-4 rounded-xl text-center border border-red-100"
-            >
-              {error?.toString() || audioError}
-            </motion.div>
-          )}
-        </AnimatePresence>
+      
       </div>
     </section>
   );
