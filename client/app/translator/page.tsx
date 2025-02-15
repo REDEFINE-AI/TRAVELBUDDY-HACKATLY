@@ -1,98 +1,393 @@
-// 'use client';
-// import useAudioRecorder from '@/hooks/audio-player';
-// import axios from 'axios';
-// import { useActionState, useEffect, useRef, useState } from 'react';
-// import { FaMicrophone, FaDownload } from 'react-icons/fa6';
-// import { LuAudioLines } from 'react-icons/lu';
+'use client';
 
-// export default function Page() {
+import useAudioRecorder from '@/hooks/audio-player';
+import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { FaCircle, FaRegCopy } from 'react-icons/fa';
+import { FaKeyboard, FaMicrophone } from 'react-icons/fa6';
+import { MdPause, MdPlayArrow } from 'react-icons/md';
+import { IoLanguage } from "react-icons/io5";
+import { FaWaveSquare } from "react-icons/fa";
+import { LuAudioLines } from "react-icons/lu";
+import { Toaster, toast } from 'react-hot-toast';
+import { useSpeechSynthesis } from 'react-speech-kit';
+import { AxiosError } from 'axios';
 
+interface AudioPlayerProps {
+  isPlaying: boolean;
+  onToggle: () => void;
+}
 
-//   // const {
-//   //   isRecording,
-//   //   audioFile,
-//   //   error: audioError,
-//   //   startRecording,
-//   //   stopRecording,
-//   //   pauseRecording,
-//   //   resumeRecording,
-//   //   createDownloadableFile,
-//   // } = useAudioRecorder();
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ isPlaying, onToggle }) => {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="bg-white/90 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3 shadow-sm border border-teal-100 w-full max-w-xs"
+    >
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={onToggle}
+        className="h-10 w-10 rounded-lg bg-teal-500 flex items-center justify-center text-white shadow-md"
+      >
+        {isPlaying ? <MdPause size={24} /> : <MdPlayArrow size={24} />}
+      </motion.button>
+      <div className="flex-1">
+        <div className="h-1 bg-teal-100 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: '0%' }}
+            animate={isPlaying ? { width: '100%' } : { width: '0%' }}
+            transition={{ duration: 30, ease: 'linear' }}
+            className="h-full bg-teal-500"
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
+interface TranslatorToolProps {
+  language: string;
+  translatedTo: string;
+  translatedText: string;
+}
 
+export default function TranslatorTool() {
+  const {
+    isRecording,
+    audioFile,
+    error: audioError,
+    startRecording,
+    stopRecording,
+    pauseRecording,
+    resumeRecording,
+    createDownloadableFile,
+  } = useAudioRecorder();
 
-//   return (
-//     <>
-//       <section className="w-full h-screen bg-white px-4 pt-4">
-//         <div className="grid place-items-center justify-center h-full w-full">
-//           <div className="flex flex-col items-center gap-4">
-//             {isRecording ? (
-//               <p className="text-lg text-slate-700">Identifying language....</p>
-//             ) : (
-//               <p className="text-lg text-slate-700">Record Your Audio</p>
-//             )}
-//             <div
-//               className={`flex  w-full h-full text-[5rem] ${
-//                 isRecording ? 'animate-pulse text-teal-700' : 'text-teal-700 opacity-40'
-//               }`}
-//             >
-//               <LuAudioLines />
-//               <LuAudioLines />
-//               <LuAudioLines />
-//             </div>
-//           </div>
-//           <div className=" flex flex-col items-center gap-5">
-//             <button
-//               type="button"
-//               className="flex shrink-0 justify-center items-center gap-2 text-3xl font-medium size-20 bg-teal-600  rounded-full hover:bg-teal-700  border-teal-400 border border-transparent  text-white  disabled:opacity-50 disabled:pointer-events-none"
-//               onClick={() => startRecording()}
-//               {...(isRecording && { disabled: true })}
-//             >
-//               <FaMicrophone />
-//             </button>
+  const languages = [
+    { code: 'en-US', name: 'English', ttsCode: 'en-US' },
+    { code: 'fr-FR', name: 'French', ttsCode: 'fr-FR' },
+    { code: 'de-DE', name: 'German', ttsCode: 'de-DE' },
+    { code: 'hi-IN', name: 'Hindi', ttsCode: 'hi-IN' },
+    { code: 'ml-IN', name: 'Malayalam', ttsCode: 'ml-IN' },
+  ];
 
-//             <button
-//               type="button"
-//               className="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-gray-300 bg-white text-teal-600 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 dark:text-teal-500"
-//               {...(!isRecording && { disabled: true })}
-//               onClick={() => {
-//                 stopRecording();
-//                 console.log(audioFile);
-//               }}
-//             >
-//               Stop recording
-//             </button>
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<any>(null);
+  const [data, setData] = useState<any>();
+  const [language, setLanguage] = useState(languages[0].code);
 
-//             {/* Audio Preview and Download Section */}
-//             {audioFile.url && (
-//               <div className="flex flex-col items-center gap-4 mt-4">
-//                 <audio src={audioFile.url} controls className="w-full max-w-md" />
+  const { speak, speaking, supported } = useSpeechSynthesis();
 
-//                 <button
-//                   onClick={() => {
-//                     const downloadable = createDownloadableFile();
-//                     if (!downloadable) return;
+  // Remove initialChatData and update chatHistory state
+  const [chatHistory, setChatHistory] = useState<Array<{
+    id: string;
+    original_text: string;
+    translation: string;
+    target_language: string;
+    created_at: string;
+    user_id?: string;
+  }>>([]);
 
-//                     const downloadLink = document.createElement('a');
-//                     downloadLink.href = downloadable.url!;
-//                     downloadLink.download = downloadable.name;
-//                     document.body.appendChild(downloadLink);
-//                     downloadLink.click();
-//                     document.body.removeChild(downloadLink);
-//                   }}
-//                   className="py-2 px-4 flex items-center gap-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
-//                 >
-//                   <FaDownload />
-//                   <span>Download Recording</span>
-//                   {audioFile.size && (
-//                     <span className="text-sm">({(audioFile.size / 1024).toFixed(2)} KB)</span>
-//                   )}
-//                 </button>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       </section>
-//     </>
-//   );
-// }
+  // Add initial data fetch
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/translator');
+        setChatHistory(response.data);
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+        toast.error('Failed to fetch translation history');
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  async function getTranslation() {
+    setLoading(true);
+    
+    if (!audioFile.blob) {
+      toast.error('Please record audio first');
+      return;
+    }
+
+    const formData = new FormData();
+    let audio_file = new File([audioFile.blob], 'audio.wav', { type: 'audio/wav' });
+    formData.append('audio_file', audio_file);
+    formData.append('target_language', language);
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/translator', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      setData(response.data); // Store the response data
+      toast.success('Translation completed!');
+    } catch (error) {
+      console.error(error);
+      toast.error(((error as AxiosError)?.response?.data as string) || 'Translation failed');
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Add this useEffect to make API call when translation data changes
+  useEffect(() => {
+    if (data) {
+      // Make your API call here
+      const fetchData = async () => {
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/translator');
+          // Handle the response data
+          setChatHistory(prevHistory => [...prevHistory, response.data]);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          toast.error('Failed to fetch updated data');
+        }
+      };
+
+      fetchData();
+    }
+  }, [data]); // This effect runs whenever 'data' changes
+
+  const handleSpeak = (text: string, targetLanguage: string) => {
+    if (supported) {
+      const voices = window.speechSynthesis.getVoices();
+      const targetCode = targetLanguage.split('-')[0].toLowerCase();
+      
+      const matchingVoice = voices.find(voice => 
+        voice.lang.toLowerCase().startsWith(targetCode)
+      );
+      
+      if (matchingVoice) {
+        if (speaking) {
+          window.speechSynthesis.cancel();
+        }
+        speak({ 
+          text,
+          lang: matchingVoice.lang 
+        });
+      } else {
+        toast.error(`Text-to-speech is not available for this language`);
+      }
+    } else {
+      toast.error('Text-to-speech is not supported in your browser');
+    }
+  };
+
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Optional: Sort messages by created_at when displaying
+  const sortedChatHistory = [...chatHistory].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  {
+    error && <p className="text-red-500">{typeof error === 'string' ? error : error?.response?.data}</p>;
+  }
+
+  return (
+    <section className="w-full min-h-screen bg-white">
+      <Toaster position="top-center" />
+      <div className="absolute inset-0 bg-gradient-to-b from-teal-50/50 to-white" />
+      
+      {/* Mobile-optimized container */}
+      <div className="relative h-screen flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-teal-100 bg-white/80 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-teal-900">Live Translator</h1>
+            <Dropdown text={languages[0].name} options={languages} onSelect={setLanguage} />
+          </div>
+        </div>
+
+        {/* Additional instructions */}
+        <div className="p-4 bg-teal-50 mx-4 my-2 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-teal-700">
+            <IoLanguage className="w-5 h-5" />
+            <span>Speak or record in any language → Select language → Click Translate</span>
+          </div>
+        </div>
+
+        {/* Chat Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {chatHistory.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center p-4">
+              <button 
+                className="p-4 rounded-full bg-teal-100 text-teal-600 mb-4"
+                aria-label="Start recording"
+                onClick={startRecording}
+              >
+                <FaMicrophone size={24} />
+              </button>
+              <h2 className="text-lg font-medium text-teal-900 mb-2">No translations yet</h2>
+              <p className="text-sm text-teal-600">
+                Click the microphone button to start recording and translating
+              </p>
+            </div>
+          ) : (
+            sortedChatHistory.map((message) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-2"
+              >
+                {/* Original Text - Send theme */}
+                <div className="flex justify-end">
+                  <div className="bg-teal-500 text-white rounded-2xl rounded-tr-none px-4 py-2 max-w-[80%]">
+                    <p>{message.original_text}</p>
+                  </div>
+                </div>
+                
+                {/* Translation - Receive theme */}
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2 max-w-[80%] group">
+                    <p className="text-gray-800">{message.translation}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <button
+                        onClick={() => handleSpeak(message.translation, message.target_language)}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <LuAudioLines size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(message.translation);
+                          toast.success('Copied to clipboard!');
+                        }}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <FaRegCopy size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+          
+          {loading && (
+            <div className="flex justify-center">
+              <div className="bg-white/90 rounded-xl p-3 shadow-sm">
+                <LuAudioLines className="w-6 h-6 text-teal-500 animate-pulse" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Recording Controls - Fixed at bottom */}
+        <div className="border-t border-teal-100 bg-white/80 backdrop-blur-sm p-4">
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center justify-center gap-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => isRecording ? stopRecording() : startRecording()}
+                className={`h-14 w-14 rounded-full flex items-center justify-center text-white shadow-lg ${
+                  isRecording ? 'bg-red-500' : 'bg-teal-500'
+                }`}
+              >
+                {isRecording ? <FaCircle size={24} /> : <FaMicrophone size={24} />}
+              </motion.button>
+              
+              {audioFile.blob && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={getTranslation}
+                  className="px-6 py-3 bg-teal-500 text-white rounded-full shadow-lg flex items-center gap-2"
+                >
+                  <IoLanguage size={20} />
+                  Translate
+                </motion.button>
+              )}
+            </div>
+            {isRecording && (
+              <span className="text-sm text-teal-600 animate-pulse">
+                Recording... Tap to stop
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+interface DropdownProps {
+  text: string;
+  options: { code: string; name: string; }[];
+  onSelect: (code: string) => void;
+}
+
+const Dropdown: React.FC<DropdownProps> = ({ text, options, onSelect }) => {
+  const [option, setOption] = useState('en');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggle = () => {
+    setIsOpen(prev => !prev);
+  };
+
+  const handleOptionSelect = (code: string) => {
+    setOption(code);
+    setIsOpen(false);
+    onSelect(code);
+  };
+
+  return (
+    <div className="relative z-[999]">
+      <button
+        id="hs-dropdown-transform-style"
+        type="button"
+        className="py-2 px-4 inline-flex items-center gap-2 text-sm font-medium rounded-lg border border-teal-200 bg-white text-teal-900 shadow-sm hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+        aria-haspopup="menu"
+        aria-expanded={isOpen ? 'true' : 'false'}
+        aria-label="Dropdown"
+        onClick={handleToggle}
+      >
+        {options.find(optionItem => optionItem.code === option)
+          ? options.find(optionItem => optionItem.code === option)?.name
+          : text}
+        <svg
+          className={`hs-dropdown-open:rotate-180 size-4 transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute mt-2 w-48 bg-white rounded-lg shadow-lg border border-teal-100 z-[999]">
+          <div className="p-1">
+            {options.map(option => (
+              <button
+                key={option.code}
+                onClick={() => handleOptionSelect(option.code)}
+                className="w-full text-left px-4 py-2 text-sm text-teal-900 hover:bg-teal-50 rounded-md transition-colors"
+              >
+                {option.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
