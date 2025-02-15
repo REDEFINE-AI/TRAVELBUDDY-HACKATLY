@@ -125,8 +125,7 @@ export default function TranslatorTool() {
       text, 
       lang: selectedLang?.code || 'en-US',
       rate: 0.9,     // Slightly slower rate for better clarity
-      pitch: 1.0,    // Natural pitch
-      volume: 1.0    // Maximum volume
+      pitch: 1.0     // Natural pitch
     });
   };
 
@@ -210,41 +209,45 @@ export default function TranslatorTool() {
                       >
                         <FaRegCopy size={20} />
                       </motion.button>
-                      <motion.button 
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        disabled={speaking}
-                        className={`p-2 rounded-lg transition-colors ${
-                          speaking 
-                            ? 'bg-teal-100 text-teal-600' 
-                            : 'text-teal-500 hover:text-teal-600 hover:bg-teal-50'
-                        }`}
-                        onClick={() => handleSpeak(data.translation)}
-                      >
-                        <LuAudioLines size={20} />
-                      </motion.button>
                     </div>
                   </div>
                   
                   {/* Dynamic Audio Waveform */}
-                  <div className="flex items-center justify-center h-16 gap-1">
-                    {[...Array(32)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        animate={{
-                          height: isPlaying ? `${Math.random() * 100}%` : "20%"
-                        }}
-                        transition={{
-                          duration: 0.5,
-                          repeat: isPlaying ? Infinity : 0,
-                          repeatType: "reverse"
-                        }}
-                        className="w-1.5 bg-teal-500/80 rounded-full"
-                      />
-                    ))}
+                  <div className="flex flex-col items-center gap-4">
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      disabled={speaking}
+                      className={`p-3 rounded-lg transition-colors ${
+                        speaking 
+                          ? 'bg-teal-100 text-teal-600' 
+                          : 'text-teal-500 hover:text-teal-600 hover:bg-teal-50'
+                      }`}
+                      onClick={() => {
+                        handleSpeak(data.translation);
+                        setIsPlaying(!isPlaying);
+                      }}
+                    >
+                      <LuAudioLines size={24} />
+                    </motion.button>
+
+                    <div className="flex items-center justify-center h-16 gap-1">
+                      {[...Array(32)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          animate={{
+                            height: speaking ? `${Math.random() * 100}%` : "20%"
+                          }}
+                          transition={{
+                            duration: 0.5,
+                            repeat: speaking ? Infinity : 0,
+                            repeatType: "reverse"
+                          }}
+                          className="w-1.5 bg-teal-500/80 rounded-full"
+                        />
+                      ))}
+                    </div>
                   </div>
-                  
-                  <AudioPlayer isPlaying={isPlaying} onToggle={() => setIsPlaying(!isPlaying)} />
                 </motion.div>
               ) : (
                 <motion.div
