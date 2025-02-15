@@ -12,12 +12,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from app.db import Base
+from app.utils import generate_uuid
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     username = Column(String, nullable=True)
     email = Column(String, unique=True, index=True)
     is_active = Column(Boolean, default=True)
@@ -32,7 +33,7 @@ class User(Base):
 class Translator(Base):
     __tablename__ = "translators"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     original_text = Column(String)
     translation = Column(String)
     target_language = Column(String)
@@ -46,7 +47,7 @@ class Translator(Base):
 class Activity(Base):
     __tablename__ = "activities"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     time = Column(String)
     description = Column(String)
     price = Column(Float)
@@ -64,15 +65,17 @@ class Activity(Base):
         )
     )
     itinerary_item_id = Column(String, ForeignKey("itinerary_items.id"))
+    trip_id = Column(String, ForeignKey("trips.id"))
 
     # Relationships
-    itinerary_item = relationship("ItineraryItem", back_populates="sights")
+    itinerary_item = relationship("ItineraryItem", back_populates="activities")
+    trip = relationship("Trip", back_populates="activities")
 
 
 class Hotel(Base):
     __tablename__ = "hotels"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     name = Column(String)
     rating = Column(Float)
     location = Column(String)
@@ -81,15 +84,17 @@ class Hotel(Base):
     image = Column(String)
     booking_url = Column(String)
     itinerary_item_id = Column(String, ForeignKey("itinerary_items.id"))
+    trip_id = Column(String, ForeignKey("trips.id"))
 
     # Relationships
-    itinerary_item = relationship("ItineraryItem", back_populates="sights")
+    itinerary_item = relationship("ItineraryItem", back_populates="hotels")
+    trip = relationship("Trip", back_populates="hotel")
 
 
 class Trip(Base):
     __tablename__ = "trips"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     title = Column(String)
     description = Column(String)
     destination = Column(String)
@@ -103,12 +108,13 @@ class Trip(Base):
     hotel = relationship("Hotel", back_populates="trip", uselist=False)
     activities = relationship("Activity", back_populates="trip")
     places = relationship("Place", back_populates="trip")
+    itinerary = relationship("Itinerary", back_populates="trip")
 
 
 class Place(Base):
     __tablename__ = "places"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     name = Column(String)
     location = Column(String)
     description = Column(String)
@@ -122,7 +128,7 @@ class Place(Base):
 class Itinerary(Base):
     __tablename__ = "itineraries"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     trip_id = Column(String, ForeignKey("trips.id"))
 
     # Relationships
@@ -133,7 +139,7 @@ class Itinerary(Base):
 class Wallet(Base):
     __tablename__ = "wallets"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     balance = Column(Float, default=0.0)
     user_id = Column(String, ForeignKey("users.id"))
 
@@ -144,7 +150,7 @@ class Wallet(Base):
 class ItineraryItem(Base):
     __tablename__ = "itinerary_items"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     name = Column(String)
     description = Column(String)
     img = Column(String)
@@ -162,12 +168,15 @@ class ItineraryItem(Base):
 
     # Relationships
     itinerary = relationship("Itinerary", back_populates="items")
+    activities = relationship("Activity", back_populates="itinerary_item")
+    hotels = relationship("Hotel", back_populates="itinerary_item")
+    sights = relationship("Sight", back_populates="itinerary_item")
 
 
 class Sight(Base):
     __tablename__ = "sights"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
     name = Column(String)
     location = Column(String)
     description = Column(String)
