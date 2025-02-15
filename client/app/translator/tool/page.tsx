@@ -70,7 +70,7 @@ export default function TranslatorTool() {
   ];
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<any>(null);
   const [data, setData] = useState<any>();
   const [language, setLanguage] = useState(languages[0].code);
 
@@ -105,7 +105,7 @@ export default function TranslatorTool() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   {
-    error && <p className="text-red-500">{error?.response?.data}</p>;
+    error && <p className="text-red-500">{typeof error === 'string' ? error : error?.response?.data}</p>;
   }
 
   return (
@@ -288,10 +288,15 @@ export default function TranslatorTool() {
   );
 }
 
-// Update Dropdown styles to match theme
-const Dropdown = ({ text, options, onSelect }) => {
-  const [option, setOption] = useState('en'); // Default option
-  const [isOpen, setIsOpen] = useState(false); // State to toggle the dropdown visibility
+interface DropdownProps {
+  text: string;
+  options: { code: string; name: string; }[];
+  onSelect: (code: string) => void;
+}
+
+const Dropdown: React.FC<DropdownProps> = ({ text, options, onSelect }) => {
+  const [option, setOption] = useState('en');
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleToggle = () => {
     setIsOpen(prev => !prev);
@@ -299,8 +304,8 @@ const Dropdown = ({ text, options, onSelect }) => {
 
   const handleOptionSelect = (code: string) => {
     setOption(code);
-    setIsOpen(false); // Close the dropdown after selecting an option
-    onSelect(code); // Pass the selected code to the parent component
+    setIsOpen(false);
+    onSelect(code);
   };
 
   return (
