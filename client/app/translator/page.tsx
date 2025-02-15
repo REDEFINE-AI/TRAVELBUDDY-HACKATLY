@@ -154,9 +154,9 @@ export default function TranslatorTool() {
 
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Optional: Sort messages by created_at when displaying
+  // Changed: Reversed sort order to show latest messages at bottom
   const sortedChatHistory = [...chatHistory].sort((a, b) => 
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
   {
