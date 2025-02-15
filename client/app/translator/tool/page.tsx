@@ -10,6 +10,9 @@ import { MdPause, MdPlayArrow } from 'react-icons/md';
 import { IoLanguage } from "react-icons/io5";
 import { FaWaveSquare } from "react-icons/fa";
 import { LuAudioLines } from "react-icons/lu";
+import { Toaster, toast } from 'react-hot-toast';
+import { useSpeechSynthesis } from 'react-speech-kit';
+import { AxiosError } from 'axios';
 
 interface AudioPlayerProps {
   isPlaying: boolean;
@@ -62,11 +65,11 @@ export default function TranslatorTool() {
   } = useAudioRecorder();
 
   const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'hi', name: 'Hindi' },
-    { code: 'ml', name: 'Malayalam' },
+    { code: 'en-US', name: 'English' },
+    { code: 'fr-FR', name: 'French' },
+    { code: 'de-DE', name: 'German' },
+    { code: 'hi-IN', name: 'Hindi' },
+    { code: 'ml-IN', name: 'Malayalam' },
   ];
 
   const [loading, setLoading] = useState(false);
@@ -74,33 +77,58 @@ export default function TranslatorTool() {
   const [data, setData] = useState<any>();
   const [language, setLanguage] = useState(languages[0].code);
 
+  const { speak, speaking, supported } = useSpeechSynthesis();
+
   async function getTransaltion() {
     setLoading(true);
+    
+    if (!audioFile.blob) {
+      toast.error('Please record audio first');
+      return;
+    }
 
     const formData = new FormData();
-    console.log('audioFile.blob', audioFile.blob, 'audio.wav');
-    if (!audioFile.blob) return;
     let audio_file = new File([audioFile.blob], 'audio.wav', { type: 'audio/wav' });
     formData.append('audio_file', audio_file);
     formData.append('target_language', language);
-    console.log(formData)
-    await axios
-      .post('http://127.0.0.1:8000/translator', formData, {
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/translator', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data', // Ensure content type is set for file upload
+          'Content-Type': 'multipart/form-data',
         },
-      })
-      .then(response => {
-        console.log(response);
-        setData(response.data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.log(error);
-        setError(error);
-        setLoading(false);
       });
+      setData(response.data);
+      toast.success('Translation completed!');
+    } catch (error) {
+      console.error(error);
+      toast.error(((error as AxiosError)?.response?.data as string) || 'Translation failed');
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
   }
+
+  const handleSpeak = (text: string) => {
+    if (!supported) {
+      toast.error('Text-to-speech is not supported in your browser');
+      return;
+    }
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    // Get the full language object
+    const selectedLang = languages.find(lang => lang.code.startsWith(language));
+    
+    speak({ 
+      text, 
+      lang: selectedLang?.code || 'en-US',
+      rate: 0.9,     // Slightly slower rate for better clarity
+      pitch: 1.0,    // Natural pitch
+      volume: 1.0    // Maximum volume
+    });
+  };
 
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -110,6 +138,7 @@ export default function TranslatorTool() {
 
   return (
     <section className="w-full min-h-screen bg-white">
+      <Toaster position="top-center" />
       <div className="absolute inset-0 bg-gradient-to-b from-teal-50/50 to-white" />
       
       <div className="relative max-w-4xl mx-auto px-4 py-12 space-y-8">
@@ -167,16 +196,34 @@ export default function TranslatorTool() {
                   exit={{ opacity: 0 }}
                   className="space-y-6"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between p-6 bg-teal-50/50 rounded-xl">
                     <p className="text-xl text-teal-900 leading-relaxed flex-1">{data.translation}</p>
-                    <motion.button 
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="p-2 text-teal-500 hover:text-teal-600"
-                      onClick={() => navigator.clipboard.writeText(data.translation)}
-                    >
-                      <FaRegCopy size={20} />
-                    </motion.button>
+                    <div className="flex gap-2">
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="p-2 text-teal-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                        onClick={() => {
+                          navigator.clipboard.writeText(data.translation);
+                          toast.success('Copied to clipboard!');
+                        }}
+                      >
+                        <FaRegCopy size={20} />
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        disabled={speaking}
+                        className={`p-2 rounded-lg transition-colors ${
+                          speaking 
+                            ? 'bg-teal-100 text-teal-600' 
+                            : 'text-teal-500 hover:text-teal-600 hover:bg-teal-50'
+                        }`}
+                        onClick={() => handleSpeak(data.translation)}
+                      >
+                        <LuAudioLines size={20} />
+                      </motion.button>
+                    </div>
                   </div>
                   
                   {/* Dynamic Audio Waveform */}
@@ -270,19 +317,7 @@ export default function TranslatorTool() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Error Messages */}
-        <AnimatePresence>
-          {(error || audioError) && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="bg-red-50 text-red-500 p-4 rounded-xl text-center border border-red-100"
-            >
-              {error?.toString() || audioError}
-            </motion.div>
-          )}
-        </AnimatePresence>
+      
       </div>
     </section>
   );
