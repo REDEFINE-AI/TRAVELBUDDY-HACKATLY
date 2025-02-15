@@ -79,7 +79,16 @@ export default function TranslatorTool() {
 
   const { speak, speaking, supported } = useSpeechSynthesis();
 
-  async function getTransaltion() {
+  // Update the chat history state type to match the response data structure
+  const [chatHistory, setChatHistory] = useState<Array<{
+    id: string;
+    original_text: string;
+    translation: string;
+    target_language: string;
+    created_at: string;
+  }>>([]);
+
+  async function getTranslation() {
     setLoading(true);
     
     if (!audioFile.blob) {
@@ -98,7 +107,10 @@ export default function TranslatorTool() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setData(response.data);
+      
+      // Update to use the response data structure
+      setChatHistory(prev => [...prev, response.data]);
+      
       toast.success('Translation completed!');
     } catch (error) {
       console.error(error);
@@ -140,187 +152,117 @@ export default function TranslatorTool() {
       <Toaster position="top-center" />
       <div className="absolute inset-0 bg-gradient-to-b from-teal-50/50 to-white" />
       
-      <div className="relative max-w-4xl mx-auto px-4 py-12 space-y-8">
-        {/* Header with animation */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-3"
-        >
-          <div className="flex justify-center">
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="bg-teal-500 p-3 rounded-2xl shadow-lg"
+      {/* Mobile-optimized container */}
+      <div className="relative h-screen flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-teal-100 bg-white/80 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-teal-900">Live Translator</h1>
+            <Dropdown text={languages[0].name} options={languages} onSelect={setLanguage} />
+          </div>
+        </div>
+
+        {/* Additional instructions */}
+        <div className="p-4 bg-teal-50 mx-4 my-2 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-teal-700">
+            <IoLanguage className="w-5 h-5" />
+            <span>Speak or record in any language → Select target language → Click Translate</span>
+          </div>
+        </div>
+
+        {/* Chat Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {chatHistory.map((message) => (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-2"
             >
-              <IoLanguage className="w-8 h-8 text-white" />
-            </motion.div>
-          </div>
-          <h1 className="text-3xl font-bold text-teal-900">Live Translator</h1>
-          <p className="text-teal-600">Professional voice translation in real-time</p>
-        </motion.div>
-
-        {/* Translation Result Card */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-teal-100 overflow-hidden"
-        >
-          {/* Language Selection - Integrated into card header */}
-          <div className="border-b border-teal-100 p-4">
-            <div className="flex items-center justify-end gap-4">
-              <h3 className="text-teal-900 font-medium">Translate to:</h3>
-              <Dropdown text={languages[0].name} options={languages} onSelect={setLanguage} />
-            </div>
-          </div>
-
-          <div className="p-8">
-            <AnimatePresence mode="wait">
-              {loading ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center gap-4 py-12"
-                >
-                  <LuAudioLines className="w-12 h-12 text-teal-500 animate-pulse" />
-                  <p className="text-teal-600">Processing audio...</p>
-                </motion.div>
-              ) : data?.translation ? (
-                <motion.div
-                  key="result"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="flex items-start justify-between p-6 bg-teal-50/50 rounded-xl">
-                    <p className="text-xl text-teal-900 leading-relaxed flex-1">{data.translation}</p>
-                    <div className="flex gap-2">
-                      <motion.button 
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="p-2 text-teal-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                        onClick={() => {
-                          navigator.clipboard.writeText(data.translation);
-                          toast.success('Copied to clipboard!');
-                        }}
-                      >
-                        <FaRegCopy size={20} />
-                      </motion.button>
-                    </div>
-                  </div>
-                  
-                  {/* Dynamic Audio Waveform */}
-                  <div className="flex flex-col items-center gap-4">
-                    <motion.button 
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      disabled={speaking}
-                      className={`p-3 rounded-lg transition-colors ${
-                        speaking 
-                          ? 'bg-teal-100 text-teal-600' 
-                          : 'text-teal-500 hover:text-teal-600 hover:bg-teal-50'
-                      }`}
-                      onClick={() => {
-                        handleSpeak(data.translation);
-                        setIsPlaying(!isPlaying);
-                      }}
+              {/* Original Text */}
+              <div className="flex justify-start">
+                <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2 max-w-[80%]">
+                  <p className="text-gray-800">{message.original_text}</p>
+                  <button
+                    onClick={() => handleSpeak(message.original_text)}
+                    className="text-gray-500 hover:text-gray-700 mt-1"
+                  >
+                    <LuAudioLines size={16} />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Translation */}
+              <div className="flex justify-end">
+                <div className="bg-teal-500 text-white rounded-2xl rounded-tr-none px-4 py-2 max-w-[80%] group">
+                  <p>{message.translation}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      onClick={() => handleSpeak(message.translation)}
+                      className="text-white/80 hover:text-white"
                     >
-                      <LuAudioLines size={24} />
-                    </motion.button>
-
-                    <div className="flex items-center justify-center h-16 gap-1">
-                      {[...Array(32)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          animate={{
-                            height: speaking ? `${Math.random() * 100}%` : "20%"
-                          }}
-                          transition={{
-                            duration: 0.5,
-                            repeat: speaking ? Infinity : 0,
-                            repeatType: "reverse"
-                          }}
-                          className="w-1.5 bg-teal-500/80 rounded-full"
-                        />
-                      ))}
-                    </div>
+                      <LuAudioLines size={16} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(message.translation);
+                        toast.success('Copied to clipboard!');
+                      }}
+                      className="text-white/80 hover:text-white"
+                    >
+                      <FaRegCopy size={16} />
+                    </button>
                   </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-center py-16 space-y-4"
-                >
-                  <LuAudioLines className="w-16 h-16 text-teal-200 mx-auto" />
-                  <p className="text-teal-600">Your translation will appear here</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+          
+          {loading && (
+            <div className="flex justify-center">
+              <div className="bg-white/90 rounded-xl p-3 shadow-sm">
+                <LuAudioLines className="w-6 h-6 text-teal-500 animate-pulse" />
+              </div>
+            </div>
+          )}
+        </div>
 
-        {/* Recording Controls */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col items-center gap-6"
-        >
-          <div className="relative">
-            <AnimatePresence>
-              {isRecording && (
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  className="absolute -inset-4 bg-teal-100 rounded-full"
-                  style={{ zIndex: -1 }}
-                />
-              )}
-            </AnimatePresence>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => isRecording ? stopRecording() : startRecording()}
-              className={`h-20 w-20 rounded-full flex items-center justify-center text-white shadow-lg ${
-                isRecording ? 'bg-red-500' : 'bg-teal-500'
-              }`}
-            >
-              {isRecording ? <FaCircle size={28} /> : <FaMicrophone size={28} />}
-            </motion.button>
-          </div>
-          
-          <motion.p 
-            animate={{ opacity: 1 }}
-            className="text-teal-700 font-medium"
-          >
-            {isRecording ? 'Tap to stop recording' : 'Tap to start recording'}
-          </motion.p>
-          
-          <AnimatePresence>
-            {audioFile.blob && (
+        {/* Recording Controls - Fixed at bottom */}
+        <div className="border-t border-teal-100 bg-white/80 backdrop-blur-sm p-4">
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center justify-center gap-4">
               <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={getTransaltion}
-                className="px-8 py-3 bg-teal-500 text-white rounded-xl shadow-lg"
+                onClick={() => isRecording ? stopRecording() : startRecording()}
+                className={`h-14 w-14 rounded-full flex items-center justify-center text-white shadow-lg ${
+                  isRecording ? 'bg-red-500' : 'bg-teal-500'
+                }`}
               >
-                Translate Audio
+                {isRecording ? <FaCircle size={24} /> : <FaMicrophone size={24} />}
               </motion.button>
+              
+              {audioFile.blob && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={getTranslation}
+                  className="px-6 py-3 bg-teal-500 text-white rounded-full shadow-lg flex items-center gap-2"
+                >
+                  <IoLanguage size={20} />
+                  Translate
+                </motion.button>
+              )}
+            </div>
+            {isRecording && (
+              <span className="text-sm text-teal-600 animate-pulse">
+                Recording... Tap to stop
+              </span>
             )}
-          </AnimatePresence>
-        </motion.div>
-
-      
+          </div>
+        </div>
       </div>
     </section>
   );
