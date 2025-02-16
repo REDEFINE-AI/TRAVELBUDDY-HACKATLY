@@ -10,6 +10,9 @@ import { validateField } from "../utils/validation";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
 import Image from "next/image";
+import axiosInstance from '@/lib/axios'; // Add axios import
+import useAuthStore from '@/store/useAuthStore'; // Add auth store import
+import toast from 'react-hot-toast'; // Add toast import
 
 interface LoginFormData {
   email: string;
@@ -28,7 +31,9 @@ interface LoginFormData {
     errors: { email: "", password: "" },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { setToken } = useAuthStore(); // Add setToken from auth store
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors = {
       email: validateField("email", formData.email),
@@ -39,8 +44,33 @@ interface LoginFormData {
       setFormData((prev) => ({ ...prev, errors }));
       return;
     }
-    router.push("/onboarding")
+
+    try {
+      const loadingToast = toast.loading('Logging in...'); // Show loading toast
+      const response = await axiosInstance.post('/auth/login', {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      const { access_token } = response.data; // Get access token from response
+      setToken(access_token); // Store access token
+      localStorage.setItem('token', access_token); // Save token in local storage
+
+      toast.success('Login successful!'); // Show success toast
+      router.push('/dashboard'); // Redirect to dashboard
+    } catch (error: any) {
+      console.error('Error:', error);
+      toast.error(error.response?.data?.message || 'Login failed'); // Show error toast
+      setFormData((prev) => ({
+        ...prev,
+        errors: {
+          ...prev.errors,
+          email: error.response?.data?.message || 'Invalid credentials', // Set error message
+        },
+      }));
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-500 via-teal-600 to-teal-700 p-4 flex flex-col items-center justify-center">
