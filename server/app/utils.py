@@ -2,6 +2,7 @@ import uuid
 from passlib.context import CryptContext
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
