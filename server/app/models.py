@@ -148,7 +148,7 @@ class Hotel(Base):
     name = Column(String)
     rating = Column(Float)
     location = Column(JSON)
-    specific_location = Column(JSON, default=["munnar"])
+    specific_location = Column(JSON)
     description = Column(String)
     amenities = Column(JSON)
     image = Column(String)

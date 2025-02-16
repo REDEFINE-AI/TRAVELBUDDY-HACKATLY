@@ -7,6 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from dotenv import load_dotenv
 from app.db import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import JSONB  # Import JSONB
 
 load_dotenv()
 
@@ -74,7 +75,7 @@ trip_router = APIRouter()
 #     return response.json()['features']
 
 
-@trip_router.post("/", summary="get trip")
+@trip_router.post("/", summary="Get Trip")
 async def get_trip(
     destination: str = Form(...),
     start_date: str = Form(...),
@@ -82,10 +83,17 @@ async def get_trip(
     travelers: int = Form(...),
     db: Session = Depends(get_db),
 ):
+    # Filtering hotels based on JSONB specific_location containing destination
     hotels = (
-        db.query(Hotel).filter(Hotel.location.contains(destination)).limit(10).all()
+        db.query(Hotel)
+        .filter(
+            Hotel.specific_location.cast(JSONB).op("@>")(f'["{destination}"]')
+        )  # JSONB containment
+        .limit(10)
+        .all()
     )
 
+    # Filtering activities based on string `location` field containing destination
     activities = (
         db.query(Activity)
         .filter(Activity.location.contains(destination))
@@ -93,10 +101,12 @@ async def get_trip(
         .all()
     )
 
+    # Filtering attractions (sights) based on string `location` field containing destination
     attractions = (
         db.query(Sight).filter(Sight.location.contains(destination)).limit(10).all()
     )
 
+    # Structuring response data
     data = {
         "hotels": hotels,
         "activities": activities,
