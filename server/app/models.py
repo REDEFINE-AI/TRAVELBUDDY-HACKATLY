@@ -9,10 +9,23 @@ from sqlalchemy import (
     Float,
     Enum,
     JSON,
+    MetaData,
+    Table,
 )
 from sqlalchemy.orm import relationship
 from app.db import Base
 from app.utils import generate_uuid
+
+metadata = MetaData()
+
+wallets = Table(
+    "wallets",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("user_id", Integer),
+    Column("balance", Integer),
+    extend_existing=True,
+)
 
 
 class User(Base):
@@ -22,12 +35,73 @@ class User(Base):
     username = Column(String, nullable=True)
     email = Column(String, unique=True, index=True)
     is_active = Column(Boolean, default=True)
-    location = Column(String)
+    location = Column(
+        JSON
+    )  # Update location to be a JSON column containing longitude and latitude
 
     # Relationships
     trips = relationship("Trip", back_populates="user")
     translations = relationship("Translator", back_populates="user")
     wallets = relationship("Wallet", back_populates="user")
+    subscriptions = relationship("Subscription", back_populates="user")
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    plan = Column(
+        Enum(
+            "free",
+            "basic",
+            "premium",
+            name="subscription_plans",
+        )
+    )
+    start_date = Column(DateTime, default=datetime.datetime.now)
+    translator_limit = Column(Integer)
+    trip_limit = Column(Integer)
+    ar_limit = Column(Integer)
+    end_date = Column(DateTime)
+
+    # Relationships
+    user = relationship("User", back_populates="subscriptions")
+
+
+class Wallet(Base):
+    __tablename__ = "wallets"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    balance = Column(Float, default=0.0)
+    coins = Column(Integer)
+    user_id = Column(String, ForeignKey("users.id"))
+
+    # Relationships
+    user = relationship("User", back_populates="wallets")
+    transactions = relationship(
+        "Wallet_Transaction", back_populates="wallet"
+    )  # Add this line
+
+
+class Wallet_Transaction(Base):
+    __tablename__ = "wallet_transactions"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    wallet_id = Column(String, ForeignKey("wallets.id"))
+    amount = Column(Float)
+    date = Column(DateTime, default=datetime.datetime.now)
+    transaction_type = Column(
+        Enum(
+            "credit",
+            "debit",
+            name="transaction_types",
+        )
+    )
+    transaction_date = Column(DateTime, default=datetime.datetime.now)
+
+    # Relationships
+    wallet = relationship("Wallet", back_populates="transactions")
 
 
 class Translator(Base):
@@ -70,9 +144,11 @@ class Hotel(Base):
     __tablename__ = "hotels"
 
     id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    hotel_id = Column(String)
     name = Column(String)
     rating = Column(Float)
-    location = Column(String)
+    location = Column(JSON)
+    specific_location = Column(JSON, default=["munnar"])
     description = Column(String)
     amenities = Column(JSON)
     image = Column(String)
@@ -130,17 +206,6 @@ class Itinerary(Base):
     # Relationships
     trip = relationship("Trip", back_populates="itinerary")
     items = relationship("ItineraryItem", back_populates="itinerary")
-
-
-class Wallet(Base):
-    __tablename__ = "wallets"
-
-    id = Column(String, primary_key=True, default=generate_uuid, index=True)
-    balance = Column(Float, default=0.0)
-    user_id = Column(String, ForeignKey("users.id"))
-
-    # Relationships
-    user = relationship("User", back_populates="wallets")
 
 
 class ItineraryItem(Base):

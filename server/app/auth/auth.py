@@ -1,42 +1,71 @@
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, HTTPException, Depends, Form
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from app import models
 from app.schemas import UserOut, UserAuth, TokenSchema
 from app.db import get_db
 from sqlalchemy.orm import Session
 from .supabase_auth import supabase
+import json
 
 auth_router = APIRouter()
 
 
-@auth_router.post("/signup", summary="Create new user", response_model=UserOut)
-async def create_user(data: UserAuth, db: Session = Depends(get_db)):
+class Location(BaseModel):
+    latitude: float
+    longitude: float
 
+
+@auth_router.post("/signup", summary="Create new user", response_model=TokenSchema)
+async def create_user(
+    email: str = Form(...),
+    password: str = Form(...),
+    username: str = Form(...),
+    location: str = Form(...),  # Receive location as a string
+    db: Session = Depends(get_db),
+):
     try:
+        location_data = json.loads(
+            location
+        )  # Parse the location string to a dictionary
+        location_obj = Location(**location_data)  # Create a Location object
+
         response = supabase.auth.sign_up(
             {
-                "email": data.email,
-                "password": data.password,
+                "email": email,
+                "password": password,
                 "options": {
                     "data": {
-                        "first_name": data.username,
+                        "first_name": username,
                     },
                 },
             }
         )
-        # print(response.User)
+        user_data = response.user
+        session_data = response.session
+
         new_user = models.User(
-            email=response.user.email,
-            username=data.username,
-            location=response.user.location,
-            id=response.user.id,
+            email=user_data.email,
+            username=username,
+            location={
+                "latitude": location_obj.latitude,
+                "longitude": location_obj.longitude,
+            },
+            id=user_data.id,
         )
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-        return response.user
+
+        return {
+            "access_token": session_data.access_token,
+            "refresh_token": session_data.refresh_token,
+        }
 
     except Exception as e:
+        # If an error occurs, delete the user from Supabase
+        if "user_data" in locals():
+            supabase.auth.admin.delete_user(user_data.id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),

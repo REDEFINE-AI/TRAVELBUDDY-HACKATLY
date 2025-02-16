@@ -5,6 +5,9 @@ from app.auth.auth import auth_router
 from app.dashboard.dashboard import dashboard_router
 from app.translator.translator import translator_router
 from app.trip.trip import trip_router
+from app.profile.profile import profile_router  # Added missing import
+from app.subscription.subscription import subscription_router  # Added missing import
+from app.wallet.wallet import wallet_router  # Added missing import
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -27,5 +30,8 @@ app.add_middleware(
 models.Base.metadata.create_all(bind=engine)
 app.include_router(auth_router, prefix="/auth")
 app.include_router(dashboard_router, prefix="/dashboard")
+app.include_router(profile_router, prefix="/profile")
+app.include_router(subscription_router, prefix="/subscription")
 app.include_router(translator_router, prefix="/translator")
 app.include_router(trip_router, prefix="/trip")
+app.include_router(wallet_router, prefix="/wallet")
