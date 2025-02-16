@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import axios from 'axios';
+import { Loader } from '@googlemaps/js-api-loader';
+import { FaHospital, FaFireExtinguisher, FaBuilding } from 'react-icons/fa';
+import { MdLocalPolice } from "react-icons/md";
 
 interface EmergencyContact {
     name: string;
@@ -12,6 +15,21 @@ interface EmergencyContact {
 
 interface Place {
     place_id: string;
+}
+
+// Define the interface for the place result
+interface PlaceResult {
+    place_id: string;
+    name: string;
+    // Add other properties as needed
+}
+
+// Define the interface for the place detail
+interface PlaceDetail {
+    name?: string;
+    formatted_phone_number?: string;
+    formatted_address?: string;
+    website?: string;
 }
 
 const EmergencySOSPage = () => {
@@ -28,7 +46,10 @@ const EmergencySOSPage = () => {
     const [isPulsing, setIsPulsing] = useState(false);
 
     // Add loading state for emergency services
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Add new state variables
+    const [services, setServices] = useState<any[]>([]);
 
     const handleEmergencyCall = () => {
         setIsPulsing(true);
@@ -37,7 +58,17 @@ const EmergencySOSPage = () => {
         setTimeout(() => setIsPulsing(false), 500);
     };
 
-    const handleSOSConfirm = () => {
+    const getLocation = (): Promise<GeolocationPosition> => {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation is not supported'));
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+    };
+
+    const handleSOSConfirm = async () => {
         // Logic to send alerts and make emergency calls
         if (coordinates) {
             contacts.forEach(contact => {
@@ -58,30 +89,81 @@ const EmergencySOSPage = () => {
 
     const fetchEmergencyServices = async () => {
         try {
-            if (coordinates) {
-                const { latitude, longitude } = coordinates;
-                const apiKey = 'YOUR_API_KEY'; 
-                
-                const nearbyResponse = await axios.get(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=hospital|police|fire_station|embassy|tourist_information_center&key=${apiKey}`);
-                const places = nearbyResponse.data.results;
+            const loader = new Loader({
+                apiKey: process.env.NEXT_PUBLIC_MAPS_API!,
+                version: "weekly",
+                libraries: ["places"]
+            });
 
-                const detailsPromises = places.map(async (place: Place) => {
-                    const placeId = place.place_id;
-                    const detailsResponse = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_phone_number,international_phone_number,vicinity,website&key=${apiKey}`);
-                    return detailsResponse.data.result; 
-                });
+            // Load Google Maps JavaScript API
+            const google = await loader.load();
+            
+            const position = await getLocation();
+            const { latitude, longitude } = position.coords;
+            const location = new google.maps.LatLng(latitude, longitude);
 
-                const servicesWithDetails = await Promise.all(detailsPromises);
-                console.log(servicesWithDetails);
-            }
+            // Initialize Places Service
+            const placesService = new google.maps.places.PlacesService(
+                document.createElement('div')
+            );
+
+            // Search for nearby emergency services
+            const request = {
+                location: location,
+                radius: 5000,
+                type: 'hospital|police|fire_station|embassy'
+            };
+
+            placesService.nearbySearch(
+                request,
+                (results: google.maps.places.PlaceResult[] | null, status: google.maps.places.PlacesServiceStatus) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+                        // Get details for each place
+                        const detailsPromises = results.map(
+                            (place) => {
+                                return new Promise((resolve) => {
+                                    placesService.getDetails(
+                                        {
+                                            placeId: place.place_id!,
+                                            fields: ['name', 'formatted_phone_number', 'formatted_address', 'website']
+                                        },
+                                        (placeDetail: PlaceDetail | null, detailStatus: google.maps.places.PlacesServiceStatus) => {
+                                            if (detailStatus === google.maps.places.PlacesServiceStatus.OK) {
+                                                resolve(placeDetail);
+                                            } else {
+                                                resolve(null);
+                                            }
+                                        }
+                                    );
+                                });
+                            }
+                        );
+
+                        Promise.all(detailsPromises).then((detailedPlaces) => {
+                            setServices(detailedPlaces.filter(place => place !== null));
+                            setIsLoading(false);
+                        });
+                    }
+                }
+            );
         } catch (error) {
             console.error('Error fetching emergency services:', error);
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
         fetchEmergencyServices(); 
     }, []);
+
+    // Add this helper function
+    const getServiceIcon = (name: string) => {
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes('hospital')) return <FaHospital className="w-6 h-6" />;
+        if (lowerName.includes('police')) return <MdLocalPolice className="w-6 h-6" />;
+        if (lowerName.includes('fire')) return <FaFireExtinguisher className="w-6 h-6" />;
+        return <FaBuilding className="w-6 h-6" />;
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
@@ -139,6 +221,63 @@ const EmergencySOSPage = () => {
                             </div>
                         </div>
                     ))}
+                </div>
+
+                {/* Add this section after the Quick Actions Grid */}
+                <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        Nearby Emergency Services
+                    </h2>
+                    {isLoading ? (
+                        <div className="flex justify-center items-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {services.map((service, index) => (
+                                <div
+                                    key={index}
+                                    className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm 
+                                             hover:shadow-lg transition-all duration-300 
+                                             transform hover:scale-102"
+                                >
+                                    <div className="flex items-start space-x-4">
+                                        <div className="p-3 bg-red-100 dark:bg-red-900 rounded-lg">
+                                            {getServiceIcon(service.name)}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-medium text-gray-900 dark:text-white mb-1">
+                                                {service.name}
+                                            </h3>
+                                            {service.formatted_phone_number && (
+                                                <a
+                                                    href={`tel:${service.formatted_phone_number}`}
+                                                    className="text-red-500 hover:text-red-600 text-sm font-medium mb-1 block"
+                                                >
+                                                    {service.formatted_phone_number}
+                                                </a>
+                                            )}
+                                            {service.formatted_address && (
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {service.formatted_address}
+                                                </p>
+                                            )}
+                                            {service.website && (
+                                                <a
+                                                    href={service.website}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-500 hover:text-blue-600 text-sm mt-2 block"
+                                                >
+                                                    Visit Website
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Enhanced Emergency Contacts Section */}

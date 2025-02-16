@@ -105,7 +105,7 @@ export default function TranslatorTool() {
 
     const formData = new FormData();
     let audio_file = new File([audioFile.blob], 'audio.wav', { type: 'audio/wav' });
-    formData.append('audio_file', audio_file);
+    formData.append('audio_file', audio_file);        
     formData.append('target_language', language);
 
     try {
