@@ -41,11 +41,14 @@ def translate_text(target_language: str, text: str) -> dict:
         raise HTTPException(status_code=500, detail=f"Translation error: {str(e)}")
 
 
-@translator_router.post("/", summary="Transcribe and translate audio")
+@translator_router.post(
+    "/", dependencies=[Depends(JWTBearer())], summary="Transcribe and translate audio"
+)
 async def translate_audio(
     audio_file: UploadFile = File(...),
     target_language: str = Form(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(JWTBearer()),
 ):
     try:
         # Read the file content into bytes
@@ -79,7 +82,7 @@ async def translate_audio(
             original_text=transcribed_text,
             translation=translation_result["translated_text"],
             target_language=target_language,
-            user_id="67c38c54-e9f5-4126-81f3-386dcce7cf52",  # Ensure this is a string
+            user_id=current_user.id,  # Use the authenticated user's ID
         )
         db.add(new_translation)
         db.commit()
@@ -92,14 +95,17 @@ async def translate_audio(
 
 
 @translator_router.get(
-    "/",
+    "/recent",
     summary="Get last 5 translated messages",
+    dependencies=[Depends(JWTBearer())],
 )
-async def get_recent_translations(db: Session = Depends(get_db)):
+async def get_recent_translations(
+    db: Session = Depends(get_db), current_user: User = Depends(JWTBearer())
+):
     try:
         translations = (
             db.query(Translator)
-            .filter(Translator.user_id == "67c38c54-e9f5-4126-81f3-386dcce7cf52")
+            .filter(Translator.user_id == current_user.id)
             .order_by(Translator.created_at.desc())
             .limit(5)
             .all()
