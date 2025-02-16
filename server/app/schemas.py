@@ -5,6 +5,7 @@ class UserAuth(BaseModel):
     email: EmailStr
     password: str
     username: str
+    location: str
 
 
 class UserOut(BaseModel):
