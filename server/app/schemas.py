@@ -194,9 +194,19 @@ class PackageActivity(BaseModel):
     bookingUrl: str
 
 
+class DayPlanItem(BaseModel):
+    time: str
+    type: str  # 'hotel', 'attraction', 'activity', or 'break'
+    activity: str
+    description: str
+    duration: str
+    price: Optional[float] = None
+    bookingUrl: Optional[str] = None
+
+
 class ItineraryDay(BaseModel):
     date: str
-    activities: List[PackageActivity]
+    dayPlan: List[DayPlanItem]
 
 
 class TravelPackage(BaseModel):

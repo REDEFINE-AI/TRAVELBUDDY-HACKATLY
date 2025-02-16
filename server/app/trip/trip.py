@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter, Form, Depends
+from fastapi import APIRouter, Form, Depends, HTTPException, status
 from app.models import Hotel, Activity, Sight
 import os
 from fastapi.encoders import jsonable_encoder
@@ -8,7 +8,7 @@ from app.db import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import JSONB
 from openai import OpenAI
-from app.schemas import TripPackagesResponse
+from app.schemas import TripPackagesResponse, TripDetails, PackagesWrapper
 
 load_dotenv()
 
@@ -77,10 +77,13 @@ async def generate_trip_packages(
     Available Attractions:
     {attractions_json}
 
-    For each package, include:
-    - Specific hotel recommendations with price range
-    - Daily activities with times and booking prices
-    - Transportation options
+    For each package, create a detailed day-by-day itinerary including:
+    - Hotel stay with accommodation details
+    - Morning, afternoon, and evening activities properly scheduled
+    - Mix of attractions and activities throughout the day
+    - Meal times and recommended local dining options
+    - Transportation arrangements between locations
+
     Format the response as valid JSON with this structure:
     {{
       "packages": [
@@ -99,12 +102,45 @@ async def generate_trip_packages(
           "itinerary": [
             {{
               "date": "2024-03-20",
-              "activities": [
+              "dayPlan": [
+                {{
+                  "time": "07:00 AM",
+                  "type": "hotel",
+                  "activity": "Breakfast at hotel restaurant",
+                  "description": "Start your day with a complimentary breakfast",
+                  "duration": "1 hour"
+                }},
                 {{
                   "time": "09:00 AM",
-                  "description": "Specific activity description",
+                  "type": "attraction",
+                  "activity": "Visit scenic location",
+                  "description": "Guided tour of the attraction",
+                  "duration": "2 hours",
                   "price": 50,
                   "bookingUrl": "https://example.com"
+                }},
+                {{
+                  "time": "12:00 PM",
+                  "type": "break",
+                  "activity": "Lunch break",
+                  "description": "Local restaurant recommendation",
+                  "duration": "1 hour"
+                }},
+                {{
+                  "time": "02:00 PM",
+                  "type": "activity",
+                  "activity": "Adventure activity",
+                  "description": "Exciting outdoor experience",
+                  "duration": "3 hours",
+                  "price": 75,
+                  "bookingUrl": "https://example.com"
+                }},
+                {{
+                  "time": "06:00 PM",
+                  "type": "hotel",
+                  "activity": "Return to hotel and dinner",
+                  "description": "Dinner at hotel restaurant",
+                  "duration": "2 hours"
                 }}
               ]
             }}
@@ -112,6 +148,13 @@ async def generate_trip_packages(
         }}
       ]
     }}
+
+    Important notes for the AI:
+    1. Organize activities logically based on location and timing
+    2. Include breakfast, lunch, and dinner arrangements
+    3. Allow reasonable time for transportation between locations
+    4. Consider weather and daylight hours for outdoor activities
+    5. Use the actual prices and booking URLs from the provided data
     """
 
     try:
@@ -133,7 +176,14 @@ async def generate_trip_packages(
         content = response.choices[0].message.content.strip()
 
         print(content)
-        packages = json.loads(content)  # Ensure valid JSON response
+
+        try:
+            packages = json.loads(content)  # Ensure valid JSON response
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error parsing OpenAI response: {str(e)}",
+            )
 
         # Helper function to process activity data
         def process_activity(activity):
@@ -143,16 +193,24 @@ async def generate_trip_packages(
                 activity_dict["location"] = json.loads(activity_dict["location"])
             return activity_dict
 
-        return {
-            "trip_details": {
-                "hotels": [jsonable_encoder(hotel) for hotel in hotels],
-                "activities": [process_activity(activity) for activity in activities],
-                "attractions": [
+        # Ensure the response matches the expected schema
+        response_data = TripPackagesResponse(
+            trip_details=TripDetails(
+                hotels=[jsonable_encoder(hotel) for hotel in hotels],
+                activities=[process_activity(activity) for activity in activities],
+                attractions=[
                     jsonable_encoder(attraction) for attraction in attractions
                 ],
-            },
-            "packages": {"packages": packages["packages"]},
-        }
+            ),
+            packages=PackagesWrapper(packages=packages["packages"]),
+        )
+
+        return response_data
 
     except Exception as e:
-        return {"error": str(e)}
+        # Log the error for debugging
+        print(f"Error generating trip packages: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating trip packages: {str(e)}",
+        )
