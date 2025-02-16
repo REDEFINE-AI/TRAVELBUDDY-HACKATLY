@@ -37,7 +37,17 @@ const EmergencySOSPage = () => {
         setTimeout(() => setIsPulsing(false), 500);
     };
 
-    const handleSOSConfirm = () => {
+    const getLocation = (): Promise<GeolocationPosition> => {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation is not supported'));
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+    };
+
+    const handleSOSConfirm = async () => {
         // Logic to send alerts and make emergency calls
         if (coordinates) {
             contacts.forEach(contact => {
@@ -57,25 +67,30 @@ const EmergencySOSPage = () => {
     };
 
     const fetchEmergencyServices = async () => {
+        setIsLoading(true);
         try {
-            if (coordinates) {
-                const { latitude, longitude } = coordinates;
-                const apiKey = 'YOUR_API_KEY'; 
-                
-                const nearbyResponse = await axios.get(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=hospital|police|fire_station|embassy|tourist_information_center&key=${apiKey}`);
-                const places = nearbyResponse.data.results;
+            const position = await getLocation();
+            const location = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+            };
+            setCurrentLocation(location);
+            
+            // Use the new API route instead of calling Google's API directly
+            const nearbyResponse = await axios.get(
+                `/api/places?latitude=${location.latitude}&longitude=${location.longitude}`
+            );
+            
+            const places = nearbyResponse.data.results;
+            console.log('Nearby places:', places);
 
-                const detailsPromises = places.map(async (place: Place) => {
-                    const placeId = place.place_id;
-                    const detailsResponse = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_phone_number,international_phone_number,vicinity,website&key=${apiKey}`);
-                    return detailsResponse.data.result; 
-                });
-
-                const servicesWithDetails = await Promise.all(detailsPromises);
-                console.log(servicesWithDetails);
-            }
+            // If you need place details, create another API route for that
+            const servicesWithDetails = places;
+            console.log('Services with details:', servicesWithDetails);
         } catch (error) {
             console.error('Error fetching emergency services:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
