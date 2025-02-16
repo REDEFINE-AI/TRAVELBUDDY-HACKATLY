@@ -9,7 +9,6 @@ from app.db import get_db
 from sqlalchemy.orm import Session
 from app.models import Translator, User
 import uuid
-from app.basic_auth.auth import get_current_user
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -43,14 +42,13 @@ def translate_text(target_language: str, text: str) -> dict:
 
 @translator_router.post(
     "/",
-    dependencies=[Depends(get_current_user)],
     summary="Transcribe and translate audio",
 )
 async def translate_audio(
     audio_file: UploadFile = File(...),
     target_language: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    user_id: str = Form(...),
 ):
     try:
         # Read the file content into bytes
@@ -84,7 +82,7 @@ async def translate_audio(
             original_text=transcribed_text,
             translation=translation_result["translated_text"],
             target_language=target_language,
-            user_id=current_user.id,  # Use the authenticated user's ID
+            user_id=user_id,  # Use the authenticated user's ID
         )
         db.add(new_translation)
         db.commit()
@@ -99,15 +97,14 @@ async def translate_audio(
 @translator_router.get(
     "/recent",
     summary="Get last 5 translated messages",
-    dependencies=[Depends(get_current_user)],
 )
 async def get_recent_translations(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), user_id: str = Form(...)
 ):
     try:
         translations = (
             db.query(Translator)
-            .filter(Translator.user_id == current_user.id)
+            .filter(Translator.user_id == user_id)
             .order_by(Translator.created_at.desc())
             .limit(5)
             .all()

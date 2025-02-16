@@ -36,15 +36,14 @@ class User(Base):
     username = Column(String, nullable=True)
     email = Column(String, unique=True, index=True)
     is_active = Column(Boolean, default=True)
-    location = Column(
-        JSON
-    )  # Update location to be a JSON column containing longitude and latitude
-    created_at = Column(DateTime, default=datetime.datetime.now)
+    location = Column(JSON)
+    hashed_password = Column(String)
     # Relationships
     trips = relationship("Trip", back_populates="user")
     translations = relationship("Translator", back_populates="user")
     wallets = relationship("Wallet", back_populates="user")
     subscriptions = relationship("Subscription", back_populates="user")
+
 
 class TokenBlacklist(Base):
     __tablename__ = "token_blacklist"
@@ -52,6 +51,7 @@ class TokenBlacklist(Base):
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, index=True)
     blacklisted_on = Column(DateTime, default=datetime.datetime.now)
+
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
