@@ -6,6 +6,10 @@ import io
 import os
 from openai import OpenAI
 from app.auth.auth_bearer import JWTBearer
+from app.db import get_db
+from sqlalchemy.orm import Session
+from app.models import Translator, User
+import uuid
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -41,7 +45,10 @@ def translate_text(target_language: str, text: str) -> dict:
     "/", dependencies=[Depends(JWTBearer())], summary="Transcribe and translate audio"
 )
 async def translate_audio(
-    audio_file: UploadFile = File(...), target_language: str = Form(...)
+    audio_file: UploadFile = File(...),
+    target_language: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(JWTBearer()),
 ):
     try:
         # Read the file content into bytes
@@ -69,7 +76,42 @@ async def translate_audio(
             "target_language": target_language,
         }
 
+        # Save the translation data to the database
+        new_translation = Translator(
+            id=str(uuid.uuid4()),  # Convert UUID to string
+            original_text=transcribed_text,
+            translation=translation_result["translated_text"],
+            target_language=target_language,
+            user_id=current_user.id,  # Use the authenticated user's ID
+        )
+        db.add(new_translation)
+        db.commit()
+        db.refresh(new_translation)
+
         return jsonable_encoder(data)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing audio: {str(e)}")
+
+
+@translator_router.get(
+    "/recent",
+    summary="Get last 5 translated messages",
+    dependencies=[Depends(JWTBearer())],
+)
+async def get_recent_translations(
+    db: Session = Depends(get_db), current_user: User = Depends(JWTBearer())
+):
+    try:
+        translations = (
+            db.query(Translator)
+            .filter(Translator.user_id == current_user.id)
+            .order_by(Translator.created_at.desc())
+            .limit(5)
+            .all()
+        )
+        return jsonable_encoder(translations)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving translations: {str(e)}"
+        )
