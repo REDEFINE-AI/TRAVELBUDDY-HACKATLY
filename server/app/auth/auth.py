@@ -32,6 +32,7 @@ async def create_user(data: UserAuth, db: Session = Depends(get_db)):
         new_user = models.User(
             email=response.user.email,
             username=data.username,
+            location=response.user.location,
             id=response.user.id,
         )
         db.add(new_user)
