@@ -129,22 +129,24 @@ class Activity(Base):
     __tablename__ = "activities"
 
     id = Column(String, primary_key=True, default=generate_uuid, index=True)
-    time = Column(String)
+    # time = Column(String)
+    name = Column(String)
     description = Column(String)
     price = Column(Float)
-    location = Column(String)
+    location = Column(JSON)
     image = Column(String)
-    booking_url = Column(String)
-    duration = Column(String)
-    category = Column(
-        Enum(
-            "sightseeing",
-            "culture",
-            "adventure",
-            "relaxation",
-            name="activity_categories",
-        )
-    )
+    isBookable = Column(Boolean)
+    # booking_url = Column(String)
+    # duration = Column(String)
+    # category = Column(
+    #     Enum(
+    #         "sightseeing",
+    #         "culture",
+    #         "adventure",
+    #         "relaxation",
+    #         name="activity_categories",
+    #     )
+    # )
 
 
 class Hotel(Base):
