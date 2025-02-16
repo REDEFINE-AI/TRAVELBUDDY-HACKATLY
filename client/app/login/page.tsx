@@ -54,7 +54,8 @@ interface LoginFormData {
 
       const { access_token } = response.data; // Get access token from response
       setToken(access_token); // Store access token
-      localStorage.setItem('token', access_token); // Save token in local storage
+      // Set secure HTTP-only cookie
+      document.cookie = `token=${access_token}; path=/; secure; samesite=strict`;
 
       toast.success('Login successful!'); // Show success toast
       router.push('/dashboard'); // Redirect to dashboard

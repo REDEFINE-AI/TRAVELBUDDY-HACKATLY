@@ -113,14 +113,14 @@ const SignupPage: React.FC = () => {
           },
         });
 
-        const {  access_token } = response.data;
-
-        // setUser({
-        //   username: formData.name,
-        //   email: formData.email,
-        // });
+        const { access_token } = response.data;
         setToken(access_token);
-        localStorage.setItem('token', access_token);
+        document.cookie = `token=${access_token}; path=/; secure; samesite=strict`;
+
+        // Fetch user data after successful signup
+        const userResponse = await axiosInstance.get('/profile/me');
+        
+        setUser(userResponse.data);
 
         toast.success('Account created successfully!');
         router.push('/onboarding');
@@ -170,10 +170,19 @@ const SignupPage: React.FC = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      const { user, access_token } = response.data;
       
+      const { access_token } = response.data;
       setToken(access_token);
-      localStorage.setItem('token', access_token);
+      document.cookie = `token=${access_token}; path=/; secure; samesite=strict`;
+
+      // Fetch user data after successful social signup
+      const userResponse = await axiosInstance.get('/profile/me', {
+        headers: {
+          Authorization: `Bearer ${access_token}`
+        }
+      });
+      
+      setUser(userResponse.data);
       
       toast.success('Account created successfully!');
       router.push('/onboarding');

@@ -1,7 +1,7 @@
 'use client';
 
 import useAudioRecorder from '@/hooks/audio-player';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { motion,  } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { FaCircle, FaRegCopy } from 'react-icons/fa';
@@ -83,7 +83,7 @@ export default function TranslatorTool() {
   // Fetch chat history
   const fetchChatHistory = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/translator');
+      const response = await axiosInstance.get('/translator');
       setChatHistory(response.data);
     } catch (error) {
       console.error('Error fetching translation history:', error);
@@ -109,7 +109,7 @@ export default function TranslatorTool() {
     formData.append('target_language', language);
 
     try {
-      await axios.post('http://127.0.0.1:8000/translator', formData, {
+      await axiosInstance.post('/translator', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -119,7 +119,7 @@ export default function TranslatorTool() {
       await fetchChatHistory();
       toast.success('Translation completed!');
     } catch (error) {
-      console.error(error);
+      console.error(error); 
       toast.error(((error as AxiosError)?.response?.data as string) || 'Translation failed');
       setError(error);
     } finally {
