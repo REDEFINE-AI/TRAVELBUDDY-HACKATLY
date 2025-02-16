@@ -15,6 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from app.db import Base
 from app.utils import generate_uuid
+import datetime
 
 metadata = MetaData()
 
@@ -38,13 +39,19 @@ class User(Base):
     location = Column(
         JSON
     )  # Update location to be a JSON column containing longitude and latitude
-
+    created_at = Column(DateTime, default=datetime.datetime.now)
     # Relationships
     trips = relationship("Trip", back_populates="user")
     translations = relationship("Translator", back_populates="user")
     wallets = relationship("Wallet", back_populates="user")
     subscriptions = relationship("Subscription", back_populates="user")
 
+class TokenBlacklist(Base):
+    __tablename__ = "token_blacklist"
+
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String, unique=True, index=True)
+    blacklisted_on = Column(DateTime, default=datetime.datetime.now)
 
 class Subscription(Base):
     __tablename__ = "subscriptions"

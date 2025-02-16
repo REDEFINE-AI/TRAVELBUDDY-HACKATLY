@@ -8,21 +8,33 @@ class Location(BaseModel):
     longitude: float
 
 
-class UserAuth(BaseModel):
+class UserCreate(BaseModel):
     email: EmailStr
-    password: str
     username: str
+    password: str
     location: str
 
-
-class UserOut(BaseModel):
+class UserResponse(BaseModel):
+    id: int
     email: EmailStr
-    id: str
+    username: str
+    is_active: bool
 
+    class Config:
+        from_attributes = True
 
-class TokenSchema(BaseModel):
+class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
+    token_type: str = "bearer"
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
 
 
 class ProfileUpdate(BaseModel):

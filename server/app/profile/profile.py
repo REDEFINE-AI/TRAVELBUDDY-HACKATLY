@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.models import User
 from app.schemas import ProfileUpdate, ProfileResponse
 from app.db import get_db
-from app.auth.auth_bearer import JWTBearer
+from app.basic_auth.auth import get_current_user
 
 profile_router = APIRouter()
 
@@ -14,7 +14,7 @@ profile_router = APIRouter()
     summary="Get profile with subscription",
 )
 async def get_profile(
-    current_user: User = Depends(JWTBearer()), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     profile = db.query(User).filter(User.id == current_user.id).first()
     if profile is None:
@@ -28,7 +28,7 @@ async def get_profile(
 @profile_router.put("/me", response_model=ProfileResponse, summary="Update profile")
 async def update_profile(
     profile: ProfileUpdate,
-    current_user: User = Depends(JWTBearer()),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     db_profile = db.query(User).filter(User.id == current_user.id).first()
