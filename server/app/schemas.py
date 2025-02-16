@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 
@@ -31,18 +31,6 @@ class ProfileUpdate(BaseModel):
     location: Optional[Location] = None
 
 
-class ProfileResponse(BaseModel):
-    id: str
-    username: Optional[str] = None
-    email: EmailStr
-    is_active: Optional[bool] = True
-    location: Optional[Location] = None
-    subscriptions: Optional[List] = None
-
-    class Config:
-        orm_mode: True
-
-
 class WalletTransaction(BaseModel):
     id: str
     wallet_id: str
@@ -65,13 +53,42 @@ class WalletResponse(BaseModel):
         orm_mode: True
 
 
+class SubscriptionResponse(BaseModel):
+    id: str
+    user_id: str
+    plan: str
+    start_date: datetime
+    translator_limit: int
+    trip_limit: int
+    ar_limit: int
+    end_date: datetime
+
+    class Config:
+        orm_mode: True
+
+
+class ProfileResponse(BaseModel):
+    id: str
+    username: Optional[str] = None
+    email: EmailStr
+    is_active: Optional[bool] = True
+    location: Optional[Location] = None
+    subscriptions: Optional[SubscriptionResponse] = None
+    wallet: Optional[WalletResponse] = None  # Include wallet data
+
+    class Config:
+        orm_mode: True
+
+
 class Hotel(BaseModel):
     id: str
+    hotel_id: Optional[str]
     name: str
     rating: float
-    location: Location
-    description: str
-    amenities: dict
+    location: Dict[str, Any]  # Changed from JSON to Dict
+    specific_location: List[str]
+    description: Optional[str]
+    amenities: List[str]  # Changed from dict to List[str]
     image: str
     booking_url: str
 
@@ -81,14 +98,12 @@ class Hotel(BaseModel):
 
 class Activity(BaseModel):
     id: str
-    time: str
+    name: str
     description: str
     price: float
-    location: str
+    location: List[str]  # This will expect a list of strings
     image: str
-    booking_url: str
-    duration: str
-    category: str
+    isBookable: bool
 
     class Config:
         orm_mode: True
@@ -165,15 +180,54 @@ class Itinerary(BaseModel):
         orm_mode: True
 
 
-class SubscriptionResponse(BaseModel):
+class PackageHotel(BaseModel):
+    name: str
+    pricePerNight: float
+    rating: float
+    amenities: List[str]
+
+
+class PackageActivity(BaseModel):
+    time: str
+    description: str
+    price: float
+    bookingUrl: str
+
+
+class ItineraryDay(BaseModel):
+    date: str
+    activities: List[PackageActivity]
+
+
+class TravelPackage(BaseModel):
     id: str
-    user_id: str
-    plan: str
-    start_date: datetime
-    translator_limit: int
-    trip_limit: int
-    ar_limit: int
-    end_date: datetime
+    type: str
+    title: str
+    description: str
+    price: float
+    hotel: PackageHotel
+    itinerary: List[ItineraryDay]
+
+
+class TripDetails(BaseModel):
+    hotels: List[Hotel]
+    activities: List[Activity]
+    attractions: List[Sight]
 
     class Config:
-        orm_mode: True
+        orm_mode = True
+
+
+class PackagesWrapper(BaseModel):
+    packages: List[TravelPackage]
+
+    class Config:
+        orm_mode = True
+
+
+class TripPackagesResponse(BaseModel):
+    trip_details: TripDetails
+    packages: PackagesWrapper
+
+    class Config:
+        orm_mode = True

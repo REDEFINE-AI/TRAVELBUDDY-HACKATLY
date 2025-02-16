@@ -4,9 +4,12 @@ from pydantic import BaseModel
 from app import models
 from app.schemas import UserOut, UserAuth, TokenSchema
 from app.db import get_db
+from app.utils import JWTBearer, create_access_token
 from sqlalchemy.orm import Session
 from .supabase_auth import supabase
 import json
+import os
+import requests
 
 auth_router = APIRouter()
 
@@ -42,7 +45,6 @@ async def create_user(
             }
         )
         user_data = response.user
-        session_data = response.session
 
         new_user = models.User(
             email=user_data.email,
@@ -57,15 +59,25 @@ async def create_user(
         db.commit()
         db.refresh(new_user)
 
+        access_token = create_access_token(data={"id": new_user.id})
+
         return {
-            "access_token": session_data.access_token,
-            "refresh_token": session_data.refresh_token,
+            "access_token": access_token,
+            "refresh_token": response.session.refresh_token,
         }
 
     except Exception as e:
-        # If an error occurs, delete the user from Supabase
+        # If an error occurs, delete the user from Supabase using the service role key
         if "user_data" in locals():
-            supabase.auth.admin.delete_user(user_data.id)
+            service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+            headers = {
+                "Authorization": f"Bearer {service_role_key}",
+                "apikey": service_role_key,
+            }
+            requests.delete(
+                f"https://{os.getenv('SUPABASE_PROJECT_ID')}.supabase.co/auth/v1/admin/users/{user_data.id}",
+                headers=headers,
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
@@ -87,12 +99,34 @@ async def login(
                 "password": form_data.password,
             }
         )
+        user = (
+            db.query(models.User)
+            .filter(models.User.email == form_data.username)
+            .first()
+        )
+        if user is None:
+            raise HTTPException(status_code=400, detail="User not found")
+
+        access_token = create_access_token(data={"id": user.id})
+
         return {
-            "access_token": data.session.access_token,
+            "access_token": access_token,
             "refresh_token": data.session.refresh_token,
         }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Incorrect email or password. Please try again! {e}",
+        )
+
+
+@auth_router.post("/logout", summary="Logout user")
+async def logout(current_user: models.User = Depends(JWTBearer())):
+    try:
+        supabase.auth.sign_out()
+        return {"message": "Successfully logged out"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error logging out. Please try again! {e}",
         )
