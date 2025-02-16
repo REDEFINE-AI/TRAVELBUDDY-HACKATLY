@@ -1,14 +1,10 @@
-from fastapi.responses import RedirectResponse
-from uuid import uuid4
-from fastapi import FastAPI, APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from app import models
 from app.schemas import UserOut, UserAuth, TokenSchema
-from app.utils import get_hashed_password
 from app.db import get_db
 from sqlalchemy.orm import Session
 from .supabase_auth import supabase
-from fastapi.encoders import jsonable_encoder
 
 auth_router = APIRouter()
 
