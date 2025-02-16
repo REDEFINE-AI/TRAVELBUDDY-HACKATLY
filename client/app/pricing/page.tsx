@@ -64,36 +64,33 @@ const pricingPlans = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
-      {/* App-like Header with Safe Area */}
-      <div className="safe-area-top  text-white">
-        <div className="pt-4 pb-4 px-4">
-          
-        </div>
-      </div>
-
-      {/* Main Content with Proper Spacing */}
-      <div className="px-4 py-6">
-        {/* Intro Section */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-blue-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-16"
+        >
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 bg-clip-text text-transparent mb-6">
             Find Your Perfect Travel Buddy
-          </h2>
-          <p className="text-base text-gray-600">
-            Choose the companion that matches your adventure style
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Choose the companion that matches your adventure style and unlock a world of possibilities
           </p>
-        </div>
+        </motion.div>
 
-        {/* Pricing Cards with Improved Mobile Spacing */}
-        <div className="space-y-4 mb-12">
+        {/* Pricing Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {pricingPlans.map((plan, index) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`relative bg-white rounded-2xl shadow-md border overflow-hidden
-                ${plan.popular ? 'border-teal-500' : 'border-gray-100'}`}
+              whileHover={{ y: -8 }}
+              className={`relative bg-white rounded-2xl shadow-xl overflow-hidden
+                ${plan.popular ? 'border-2 border-teal-500 lg:scale-105' : ''}`}
             >
               {plan.popular && (
                 <div className="absolute top-0 left-0 right-0 bg-teal-500 py-2 px-4 text-white text-center text-sm font-medium">
@@ -152,58 +149,51 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Features Section */}
-        <div className="pt-8 pb-12">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-            Why Choose Travel Buddy?
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                title: 'Smart AI Translation',
-                description: 'Break language barriers instantly with our advanced AI translation',
-                icon: MdTranslate
-              },
-              {
-                title: 'Personalized Trips',
-                description: 'Get AI-powered trip suggestions tailored to your preferences',
-                icon: MdTravelExplore
-              },
-              {
-                title: 'AR Exploration',
-                description: 'Discover landmarks and hidden gems through augmented reality',
-                icon: MdViewInAr
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 rounded-lg bg-teal-50">
-                    <feature.icon className="w-6 h-6 text-teal-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      {feature.description}
-                    </p>
-                  </div>
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          {[
+            {
+              title: 'Smart AI Translation',
+              description: 'Break language barriers instantly with our advanced AI translation system that works offline.',
+              icon: MdTranslate
+            },
+            {
+              title: 'Personalized Trips',
+              description: 'Get AI-powered trip suggestions perfectly tailored to your preferences and travel style.',
+              icon: MdTravelExplore
+            },
+            {
+              title: 'AR Exploration',
+              description: 'Discover landmarks and hidden gems through immersive augmented reality experiences.',
+              icon: MdViewInAr
+            }
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white p-8 rounded-xl shadow-lg border border-gray-100"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="p-4 rounded-full bg-teal-50 mb-6">
+                  <feature.icon className="w-8 h-8 text-teal-500" />
                 </div>
-              </motion.div>
-            ))}
-          </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* FAQ Section with Updated Styling */}
-        <div className="pt-8 pb-16">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-            Common Questions
+        {/* FAQ Accordion */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="max-w-3xl mx-auto"
+        >
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            Frequently Asked Questions
           </h2>
           <div className="space-y-4">
             {[
@@ -234,7 +224,7 @@ export default function PricingPage() {
               </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

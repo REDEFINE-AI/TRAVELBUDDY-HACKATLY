@@ -12,6 +12,7 @@ import Image from "next/image";
 import clsx from "clsx";
 import axiosInstance from '@/lib/axios';
 import useAuthStore from '@/store/useAuthStore';
+import toast from 'react-hot-toast';
 
 interface SignupFormData {
   name: string;
@@ -19,6 +20,10 @@ interface SignupFormData {
   phone: string;
   password: string;
   otp: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
   errors: {
     name: string;
     email: string;
@@ -39,6 +44,7 @@ const SignupPage: React.FC = () => {
     errors: { name: "", email: "", password: "" },
   });
   const { setUser, setToken } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: keyof SignupFormData, value: string) => {
     setFormData((prev) => ({
@@ -59,6 +65,16 @@ const SignupPage: React.FC = () => {
     return !Object.values(errors).some((error) => error);
   };
 
+  const getLocation = (): Promise<GeolocationPosition> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -66,28 +82,53 @@ const SignupPage: React.FC = () => {
       return;
     }
 
+    setIsLoading(true);
+    const loadingToast = toast.loading('Creating your account...');
+
     try {
+      let location;
+      try {
+        const position = await getLocation();
+        location = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+      } catch (error) {
+        console.warn('Location access denied:', error);
+        toast.error('Location access denied. Continuing without location.');
+      }
+
       if (step === 1) {
-        const response = await axiosInstance.post('/auth/signup', {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
+        const formDataToSend = new FormData();
+        formDataToSend.append('username', formData.name);
+        formDataToSend.append('email', formData.email);
+        formDataToSend.append('password', formData.password);
+        if (location) {
+          formDataToSend.append('location', JSON.stringify(location));
+        }
+
+        const response = await axiosInstance.post('/auth/signup', formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
 
-        const { user, token } = response.data;
+        const {  access_token } = response.data;
 
-        // Store user and token in Zustand store
-        setUser(user);
-        setToken(token);
+        // setUser({
+        //   username: formData.name,
+        //   email: formData.email,
+        // });
+        setToken(access_token);
+        localStorage.setItem('token', access_token);
 
-        // Store token in localStorage (optional, as we're using persist middleware)
-        localStorage.setItem('token', token);
-
+        toast.success('Account created successfully!');
         router.push('/onboarding');
       }
     } catch (error: any) {
       console.error('Error:', error);
-      // Handle specific error cases
+      toast.error(error.response?.data?.message || 'Failed to create account');
+      
       if (error.response?.data?.message) {
         setFormData((prev) => ({
           ...prev,
@@ -97,21 +138,50 @@ const SignupPage: React.FC = () => {
           },
         }));
       }
+    } finally {
+      setIsLoading(false);
+      toast.dismiss(loadingToast);
     }
   };
 
   const handleSocialSignup = async (provider: "google" | "facebook") => {
+    const loadingToast = toast.loading(`Signing up with ${provider}...`);
+
     try {
-      const response = await axiosInstance.post(`/auth/${provider}/signup`);
-      const { user, token } = response.data;
+      let location;
+      try {
+        const position = await getLocation();
+        location = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+      } catch (error) {
+        console.warn('Location access denied:', error);
+        toast.error('Location access denied. Continuing without location.');
+      }
+
+      const formDataToSend = new FormData();
+      if (location) {
+        formDataToSend.append('location', JSON.stringify(location));
+      }
+
+      const response = await axiosInstance.post(`/auth/${provider}/signup`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      const { user, access_token } = response.data;
       
-      setUser(user);
-      setToken(token);
-      localStorage.setItem('token', token);
+      setToken(access_token);
+      localStorage.setItem('token', access_token);
       
+      toast.success('Account created successfully!');
       router.push('/onboarding');
     } catch (error) {
       console.error(`${provider} signup failed:`, error);
+      toast.error(`Failed to sign up with ${provider}`);
+    } finally {
+      toast.dismiss(loadingToast);
     }
   };
 
@@ -192,8 +262,9 @@ const SignupPage: React.FC = () => {
             className="w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg
               py-2 text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-200"
             type="submit"
+            disabled={isLoading}
           >
-            Sign Up
+            {isLoading ? 'Signing Up...' : 'Sign Up'}
           </motion.button>
         </form>
 

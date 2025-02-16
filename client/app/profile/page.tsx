@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { FiEdit2, FiSettings, FiClock, FiHeart, FiMap, FiGlobe, FiMessageSquare, FiCalendar } from 'react-icons/fi';
+import { FiEdit2, FiSettings, FiClock, FiHeart, FiMap, FiGlobe, FiMessageSquare, FiCalendar, FiUsers } from 'react-icons/fi';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -74,26 +74,50 @@ export default function ProfilePage() {
       </div>
 
       {/* Subscription & Credits */}
-      <div className="bg-teal-50 rounded-xl p-4 mb-4">
-        <div className="flex justify-between items-center mb-3">
+      <div className="bg-teal-50 rounded-xl p-4 mb-6">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="font-semibold text-teal-800">Current Plan</h2>
           <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm">
             {user.subscription}
           </span>
         </div>
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2">
-            <Image src="/coin.png" alt="Coins" width={20} height={20} />
-            <span className="text-teal-800">{user.coins} coins</span>
+        
+        {/* Updated Credits Display */}
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <div className="bg-white rounded-lg p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">AI Planning</span>
+              <FiSettings className="text-teal-600 w-4 h-4" />
+            </div>
+            <p className="text-xl font-semibold text-teal-800">{user.credits.aiPlanning}</p>
+            <span className="text-xs text-gray-500">credits left</span>
           </div>
-          <div className="flex items-center gap-2">
-            <FiClock className="text-teal-600" />
-            <span className="text-teal-800">{user.credits.aiPlanning + user.credits.liveTranslator + user.credits.arExploration} credits left</span>
+          <div className="bg-white rounded-lg p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Translator</span>
+              <FiGlobe className="text-teal-600 w-4 h-4" />
+            </div>
+            <p className="text-xl font-semibold text-teal-800">{user.credits.liveTranslator}</p>
+            <span className="text-xs text-gray-500">credits left</span>
           </div>
+          <div className="bg-white rounded-lg p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">AR Explore</span>
+              <FiMap className="text-teal-600 w-4 h-4" />
+            </div>
+            <p className="text-xl font-semibold text-teal-800">{user.credits.arExploration}</p>
+            <span className="text-xs text-gray-500">credits left</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-white rounded-lg p-2 px-3">
+          <Image src="/coin.png" alt="Coins" width={20} height={20} />
+          <span className="text-teal-800 font-medium">{user.coins}</span>
+          <span className="text-gray-600 text-sm">coins available</span>
         </div>
       </div>
 
-      {/* Modified Features Grid */}
+      {/* Modified Features Grid - Remove credit-related cards */}
       <div className="grid grid-cols-2 gap-4">
         <FeatureCard 
           icon={<FiMap />}
@@ -107,70 +131,6 @@ export default function ProfilePage() {
           description="View your forum activity"
         />
       </div>
-
-      {/* New Fixed Bottom Feature Bar */}
-      <motion.div 
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 max-w-lg mx-auto"
-      >
-        <div className="flex justify-between items-center">
-          <button 
-            onClick={() => setIsFeatureModalOpen(true)}
-            className="flex flex-col items-center"
-          >
-            <FiSettings className="w-6 h-6 text-teal-600" />
-            <span className="text-xs mt-1">AI Planning</span>
-            <span className="text-xs text-teal-600">{user.credits.aiPlanning} credits</span>
-          </button>
-          <button 
-            onClick={() => setIsFeatureModalOpen(true)}
-            className="flex flex-col items-center"
-          >
-            <FiGlobe className="w-6 h-6 text-teal-600" />
-            <span className="text-xs mt-1">Translator</span>
-            <span className="text-xs text-teal-600">{user.credits.liveTranslator} credits</span>
-          </button>
-          <button 
-            onClick={() => setIsFeatureModalOpen(true)}
-            className="flex flex-col items-center"
-          >
-            <FiMap className="w-6 h-6 text-teal-600" />
-            <span className="text-xs mt-1">AR Explore</span>
-            <span className="text-xs text-teal-600">{user.credits.arExploration} credits</span>
-          </button>
-        </div>
-      </motion.div>
-
-      {/* Feature Modal */}
-      <AnimatePresence>
-        {isFeatureModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="relative z-50"
-          >
-            <Dialog onClose={() => setIsFeatureModalOpen(false)} className="relative z-50">
-              <div className="fixed inset-0 bg-black/30" />
-              <motion.div 
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                className="fixed inset-x-0 bottom-0"
-              >
-                <Dialog.Panel className="bg-white rounded-t-2xl p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">Feature Details</h2>
-                    <button onClick={() => setIsFeatureModalOpen(false)}>✕</button>
-                  </div>
-                  {/* Add feature-specific content here */}
-                </Dialog.Panel>
-              </motion.div>
-            </Dialog>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Edit Profile Modal */}
       <Transition show={isEditModalOpen} as={Fragment}>
@@ -317,6 +277,36 @@ export default function ProfilePage() {
           </div>
         </Dialog>
       </Transition>
+
+      {/* Feature Modal */}
+      <AnimatePresence>
+        {isFeatureModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="relative z-50"
+          >
+            <Dialog onClose={() => setIsFeatureModalOpen(false)} className="relative z-50">
+              <div className="fixed inset-0 bg-black/30" />
+              <motion.div 
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                className="fixed inset-x-0 bottom-0"
+              >
+                <Dialog.Panel className="bg-white rounded-t-2xl p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Feature Details</h2>
+                    <button onClick={() => setIsFeatureModalOpen(false)}>✕</button>
+                  </div>
+                  {/* Add feature-specific content here */}
+                </Dialog.Panel>
+              </motion.div>
+            </Dialog>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

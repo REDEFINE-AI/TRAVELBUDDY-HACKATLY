@@ -23,7 +23,18 @@ axiosInstance.interceptors.request.use(
 
 // Response interceptor for API calls
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Check if user is authenticated and trying to access public routes
+    const token = localStorage.getItem('token');
+    const publicRoutes = ['/', '/welcome', '/signup', '/login'];
+    
+    if (token && publicRoutes.includes(window.location.pathname)) {
+      window.location.href = '/dashboard'; // or any default authenticated route
+      return response;
+    }
+    
+    return response;
+  },
   async (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
