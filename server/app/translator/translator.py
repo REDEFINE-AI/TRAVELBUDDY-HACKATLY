@@ -5,11 +5,11 @@ from google.cloud import translate_v2 as translate
 import io
 import os
 from openai import OpenAI
-from app.auth.auth_bearer import JWTBearer
 from app.db import get_db
 from sqlalchemy.orm import Session
 from app.models import Translator, User
 import uuid
+from app.basic_auth.auth import get_current_user
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -42,13 +42,15 @@ def translate_text(target_language: str, text: str) -> dict:
 
 
 @translator_router.post(
-    "/", dependencies=[Depends(JWTBearer())], summary="Transcribe and translate audio"
+    "/",
+    dependencies=[Depends(get_current_user)],
+    summary="Transcribe and translate audio",
 )
 async def translate_audio(
     audio_file: UploadFile = File(...),
     target_language: str = Form(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(JWTBearer()),
+    current_user: User = Depends(get_current_user),
 ):
     try:
         # Read the file content into bytes
@@ -97,10 +99,10 @@ async def translate_audio(
 @translator_router.get(
     "/recent",
     summary="Get last 5 translated messages",
-    dependencies=[Depends(JWTBearer())],
+    dependencies=[Depends(get_current_user)],
 )
 async def get_recent_translations(
-    db: Session = Depends(get_db), current_user: User = Depends(JWTBearer())
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     try:
         translations = (
