@@ -13,6 +13,7 @@ import Image from "next/image";
 import axiosInstance from '@/lib/axios'; // Add axios import
 import useAuthStore from '@/store/useAuthStore'; // Add auth store import
 import toast from 'react-hot-toast'; // Add toast import
+import Cookies from 'js-cookie'; // Add js-cookie import
 
 interface LoginFormData {
   email: string;
@@ -31,7 +32,7 @@ interface LoginFormData {
     errors: { email: "", password: "" },
   });
 
-  const { setToken } = useAuthStore(); // Add setToken from auth store
+  const { setUser } = useAuthStore(); // Add setUser from auth store
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,18 +47,29 @@ interface LoginFormData {
     }
 
     try {
-      const loadingToast = toast.loading('Logging in...'); // Show loading toast
-      const response = await axiosInstance.post('/auth/login', {
-        email: formData.email,
-        password: formData.password,
+      const loadingToast = toast.loading('Logging in...');
+      
+      // Create FormData object
+      const formDataToSend = new FormData();
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('password', formData.password);
+
+      const response = await axiosInstance.post('/auth/login', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      const { access_token } = response.data; // Get access token from response
-      setToken(access_token); // Store access token
-      localStorage.setItem('token', access_token); // Save token in local storage
+      const { user_id } = response.data;
+      console.log(user_id)
+      if (user_id) {
+        Cookies.set('user_id', user_id, { path: '/', secure: true, sameSite: 'strict' }); // Use js-cookie to set cookie
+      } else {
+        throw new Error('User ID not found in response');
+      }
 
-      toast.success('Login successful!'); // Show success toast
-      router.push('/dashboard'); // Redirect to dashboard
+      toast.success('Login successful!');
+      router.push('/dashboard');
     } catch (error: any) {
       console.error('Error:', error);
       toast.error(error.response?.data?.message || 'Login failed'); // Show error toast

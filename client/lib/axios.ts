@@ -5,42 +5,20 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true
 });
 
-// Request interceptor for API calls
+// Add request interceptor to log requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    console.log('Request being made:', {
+      url: config.url,
+      method: config.method,
+      baseURL: config.baseURL
+    });
     return config;
   },
   (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor for API calls
-axiosInstance.interceptors.response.use(
-  (response) => {
-    // Check if user is authenticated and trying to access public routes
-    const token = localStorage.getItem('token');
-    const publicRoutes = ['/', '/welcome', '/signup', '/login'];
-    
-    if (token && publicRoutes.includes(window.location.pathname)) {
-      window.location.href = '/dashboard'; // or any default authenticated route
-      return response;
-    }
-    
-    return response;
-  },
-  async (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
     return Promise.reject(error);
   }
 );

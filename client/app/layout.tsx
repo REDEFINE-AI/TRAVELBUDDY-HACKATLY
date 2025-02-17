@@ -3,6 +3,7 @@ import { Hubot_Sans } from "next/font/google";
 import "./globals.css";
 import PrelineScript from "./components/PrelineScript";
 import BottomNav from "./components/BottomNav";
+import { AuthCheck } from '@/components/auth/AuthCheck';
 
 const hubotSans = Hubot_Sans({
   subsets: ["latin"],
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${hubotSans.className} antialiased bg-white text-gray-900`}>
+        <AuthCheck />
         {children}
         <BottomNav />
       </body>

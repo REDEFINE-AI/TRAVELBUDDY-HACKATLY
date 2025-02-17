@@ -6,20 +6,22 @@ import { FiEdit2, FiSettings, FiClock, FiHeart, FiMap, FiGlobe, FiMessageSquare,
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useAuthStore from '@/store/useAuthStore';
 
 export default function ProfilePage() {
+  const { user: authUser } = useAuthStore();
   const [user, setUser] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    subscription: 'Premium Plan',
+    name: authUser?.username || 'Guest User',
+    email: authUser?.email || 'guest@example.com',
+    subscription: authUser?.subscriptions?.plan || 'Free Plan',
     credits: {
-      aiPlanning: 25,
-      liveTranslator: 30,
-      arExploration: 15
-    },
-    coins: 320,
+      aiPlanning: authUser?.subscriptions?.translator_limit || 0,
+      liveTranslator: authUser?.subscriptions?.trip_limit || 0,
+      arExploration: authUser?.subscriptions?.ar_limit || 0
+    },  
+    coins: authUser?.wallet?.coins || 0,
   });
-
+  console.log(authUser,"authUser");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isFeatureModalOpen, setIsFeatureModalOpen] = useState(false);

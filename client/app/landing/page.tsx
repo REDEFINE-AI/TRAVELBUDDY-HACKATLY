@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaPlane, FaShieldAlt, FaRegLifeRing, FaUserFriends, FaBars, FaTimes, FaCheck } from 'react-icons/fa'; // Importing icons
-import { motion, useScroll, useTransform } from 'framer-motion'; // Importing animation library
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion'; // Importing animation library
 import { MdTranslate, MdTravelExplore, MdViewInAr } from 'react-icons/md';
+import { HiSparkles, HiGlobe, HiChartBar, HiLightningBolt, HiCube, HiArrowRight } from 'react-icons/hi';
+import { SiOpenai, SiFramer, SiVercel } from 'react-icons/si';
 
 const pricingPlans = [
   {
@@ -118,150 +120,298 @@ const Navbar = () => {
 
 const LandingPage = () => {
   const { scrollYProgress } = useScroll();
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
+  const scaleProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 via-white to-blue-50">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-gray-900">
       <Navbar />
       
-      {/* Hero Section */}
+      {/* Hero Section - Modern Gradient + 3D Element */}
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
+              className="flex-1"
             >
-              <h1 className="text-6xl font-bold leading-tight bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 bg-clip-text text-transparent">
-                Your AI-Powered Travel Companion
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 mb-6">
+                <HiSparkles className="text-teal-600" />
+                <span className="text-sm text-teal-800 dark:text-teal-200">AI-Powered Travel Planning</span>
+              </div>
+              
+              <h1 className="text-6xl font-bold leading-tight">
+                Your Next-Gen
+                <span className="block mt-2 bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Travel Companion
+                </span>
               </h1>
-              <p className="mt-6 text-xl text-gray-600">
-                Experience seamless travel planning with cutting-edge AI technology.
-                Let us handle the details while you focus on creating memories.
+              
+              <p className="mt-6 text-xl text-gray-600 dark:text-gray-300">
+                Experience the future of travel planning with our AI-powered platform.
+                Smart itineraries, real-time translations, and immersive AR experiences.
               </p>
-              <div className="mt-8 flex space-x-4">
-                <Link href="/signup" className="bg-gradient-to-r from-teal-500 to-blue-500 text-white px-8 py-4 rounded-full hover:shadow-xl transition transform hover:-translate-y-1">
-                  Start Your Journey
-                </Link>
-                <Link href="#demo" className="border-2 border-teal-500 text-teal-500 px-8 py-4 rounded-full hover:bg-teal-50 transition">
-                  Watch Demo
-                </Link>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link href="/signup" className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-teal-500 to-blue-500 rounded-full shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300">
+                    Start Free Trial
+                    <HiLightningBolt className="ml-2" />
+                  </Link>
+                </motion.div>
+                
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link href="#demo" className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-medium text-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300">
+                    Watch Demo
+                  </Link>
+                </motion.div>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="mt-12">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Trusted by leading companies</p>
+                <div className="flex flex-wrap gap-6 items-center">
+                  {[SiOpenai, SiFramer, SiVercel].map((Icon, index) => (
+                    <Icon key={index} className="h-6 w-auto text-gray-400 dark:text-gray-600" />
+                  ))}
+                </div>
               </div>
             </motion.div>
+
+            {/* Hero Image with Gradient Blobs */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.8 }}
-              className="relative"
+              className="flex-1 relative"
             >
-              <Image
-                src="/images/hero-illustration.svg"
-                alt="Travel Illustration"
-                width={600}
-                height={500}
-                className="relative z-10"
+              {/* Gradient Blobs */}
+              <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-r from-teal-300/30 to-blue-300/30 rounded-full blur-3xl" />
+              <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-r from-purple-300/30 to-pink-300/30 rounded-full blur-3xl" />
+              
+              {/* Main Image */}
+              <div className="relative z-10">
+                <Image
+                  src="/landing-1.svg"
+                  alt="Travel Platform"
+                  width={600}
+                  height={600}
+                  className="w-full h-auto"
+                />
+              </div>
+              
+              {/* Floating Elements */}
+              <motion.div
+                animate={{ y: [0, 20, 0] }}
+                transition={{ repeat: Infinity, duration: 3 }}
+                className="absolute top-10 -right-10 w-20 h-20 bg-blue-500/10 rounded-full blur-xl"
               />
-              {/* Add decorative elements */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-teal-200/30 to-blue-200/30 rounded-full blur-3xl" />
+              <motion.div
+                animate={{ y: [20, 0, 20] }}
+                transition={{ repeat: Infinity, duration: 4 }}
+                className="absolute bottom-10 -left-10 w-32 h-32 bg-teal-500/10 rounded-full blur-xl"
+              />
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20">
+      {/* Features Bento Grid Section - Updated Design */}
+      <section className="py-24 bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900 dark:to-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
+            viewport={{ once: true }}
+            className="text-center mb-20"
           >
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 bg-clip-text text-transparent">
-              Powerful Features for Modern Travelers
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+              Experience the Future of Travel
             </h2>
-            <p className="mt-4 text-xl text-gray-600">Experience travel like never before with our cutting-edge technology</p>
+            <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">
+              Powered by cutting-edge AI and modern technology
+            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: FaPlane,
-                title: "Smart AI Translation",
-                description: "Break language barriers instantly with our advanced AI translation system that works offline.",
-                color: "from-blue-400 to-blue-600"
-              },
-              {
-                icon: FaUserFriends,
-                title: "Personalized Trips",
-                description: "Get AI-powered trip suggestions perfectly tailored to your preferences and travel style.",
-                color: "from-teal-400 to-teal-600"
-              },
-              {
-                icon: FaShieldAlt,
-                title: "AR Exploration",
-                description: "Discover landmarks and hidden gems through immersive augmented reality experiences.",
-                color: "from-indigo-400 to-indigo-600"
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2 }}
-                whileHover={{ y: -8 }}
-                className="relative bg-white rounded-2xl shadow-xl p-8 overflow-hidden"
-              >
-                <div className={`absolute top-0 left-0 w-full h-2 bg-gradient-to-r ${feature.color}`} />
-                <feature.icon className="text-4xl mb-6 bg-gradient-to-r from-teal-500 to-blue-500 bg-clip-text text-transparent" />
-                <h3 className="text-xl font-bold mb-4">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-12 gap-6">
+            {/* Main Feature Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="col-span-12 lg:col-span-8 relative group"
+            >
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal-500 to-blue-600 h-[400px]">
+                <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
+                <div className="relative h-full p-10 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center space-x-2 bg-white/20 w-fit px-4 py-2 rounded-full mb-6">
+                      <HiSparkles className="w-5 h-5 text-white" />
+                      <span className="text-sm text-white font-medium">Featured</span>
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-4">AI-Powered Trip Planning</h3>
+                    <p className="text-white/90 text-lg max-w-lg">
+                      Our advanced AI analyzes millions of travel experiences to create perfectly tailored itineraries that match your preferences and travel style.
+                    </p>
+                  </div>
+                  <Link href="/features" 
+                    className="inline-flex items-center space-x-2 bg-white/20 hover:bg-white/30 transition px-6 py-3 rounded-full text-white font-medium backdrop-blur-sm group">
+                    <span>Explore Features</span>
+                    <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Secondary Features */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="col-span-12 lg:col-span-4 grid grid-rows-2 gap-6"
+            >
+              <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-8 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
+                <div className="relative">
+                  <MdTranslate className="w-10 h-10 text-white/90 mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">Real-time Translation</h3>
+                  <p className="text-white/80">Break language barriers instantly with AI translations in 100+ languages.</p>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-rose-500 to-orange-600 rounded-3xl p-8 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
+                <div className="relative">
+                  <MdViewInAr className="w-10 h-10 text-white/90 mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">AR Navigation</h3>
+                  <p className="text-white/80">Explore with augmented reality guidance and landmark recognition.</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Additional Feature Cards */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="col-span-12 lg:col-span-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-8 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
+              <div className="relative">
+                <HiGlobe className="w-10 h-10 text-white/90 mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Smart Recommendations</h3>
+                <p className="text-white/80">Get personalized suggestions based on your preferences and travel history.</p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="col-span-12 lg:col-span-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
+              <div className="relative flex items-start space-x-8">
+                <HiCube className="w-10 h-10 text-white/90 flex-shrink-0" />
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">Immersive Experiences</h3>
+                  <p className="text-white/80">Discover destinations through interactive 3D models and virtual tours before you travel.</p>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-20 bg-gray-100">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-10">Our Services</h2>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <motion.div 
-            className="bg-white p-6 rounded-lg shadow-md" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ duration: 1 }}
+      <section className="py-24 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
           >
-            <h3 className="text-xl font-semibold">Trip Planning</h3>
-            <p className="text-gray-600">Expert trip planning tailored to your needs.</p>
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+              Comprehensive Travel Services
+            </h2>
+            <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">
+              Everything you need for a perfect journey
+            </p>
           </motion.div>
-          <motion.div 
-            className="bg-white p-6 rounded-lg shadow-md" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ duration: 1 }}
-          >
-            <h3 className="text-xl font-semibold">Travel Insurance</h3>
-            <p className="text-gray-600">Comprehensive travel insurance for peace of mind.</p>
-          </motion.div>
-          <motion.div 
-            className="bg-white p-6 rounded-lg shadow-md" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ duration: 1 }}
-          >
-            <h3 className="text-xl font-semibold">24/7 Support</h3>
-            <p className="text-gray-600">Round-the-clock support for all your travel needs.</p>
-          </motion.div>
-          <motion.div 
-            className="bg-white p-6 rounded-lg shadow-md" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ duration: 1 }}
-          >
-            <h3 className="text-xl font-semibold">Local Guides</h3>
-            <p className="text-gray-600">Connect with local guides for an authentic experience.</p>
-          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: FaPlane,
+                title: "Smart Trip Planning",
+                description: "AI-powered itinerary creation with real-time optimization",
+                gradient: "from-teal-500 to-blue-500"
+              },
+              {
+                icon: FaShieldAlt,
+                title: "Travel Insurance",
+                description: "Comprehensive coverage for worry-free adventures",
+                gradient: "from-blue-500 to-indigo-500"
+              },
+              {
+                icon: FaRegLifeRing,
+                title: "24/7 Travel Support",
+                description: "Round-the-clock assistance in multiple languages",
+                gradient: "from-indigo-500 to-purple-500"
+              },
+              {
+                icon: MdTranslate,
+                title: "Real-time Translation",
+                description: "Break language barriers with AI-powered translations",
+                gradient: "from-purple-500 to-pink-500"
+              },
+              {
+                icon: MdViewInAr,
+                title: "AR Experiences",
+                description: "Immersive augmented reality city exploration",
+                gradient: "from-pink-500 to-rose-500"
+              },
+              {
+                icon: FaUserFriends,
+                title: "Local Guides",
+                description: "Connect with certified local experts worldwide",
+                gradient: "from-rose-500 to-teal-500"
+              }
+            ].map((service, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="relative group"
+              >
+                <div className="relative z-10 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                  <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${service.gradient} mb-6`}>
+                    <service.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-4 dark:text-white">{service.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{service.description}</p>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-2xl blur-xl transition-opacity opacity-0 group-hover:opacity-100" />
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
