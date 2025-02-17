@@ -5,7 +5,7 @@ import { MdTranslate } from "react-icons/md";
 import { TbWorld } from "react-icons/tb";
 import { RiGeminiFill } from "react-icons/ri";
 
- 
+
 export default function Tools(  ) {
   return (
     <div className="mt-4 ">
@@ -21,7 +21,7 @@ export default function Tools(  ) {
 
       <div className="grid grid-cols-2 gap-2 mt-3">
         {/* Card 1 - Live Translator */}
-        <Link href="" className=" primary-bg rounded-lg p-4 flex items-center space-x-4 transform transition duration-300 ease-in-out hover:scale-105 hover:shadow-lg">
+        <Link href="/translator" className=" primary-bg rounded-lg p-4 flex items-center space-x-4 transform transition duration-300 ease-in-out hover:scale-105 hover:shadow-lg">
           <div className="relative">
             <div className="absolute -top-2 -right-2 bg-teal-800 p-[.150rem] rounded-full">
               <RiGeminiFill className="text-white text-xss  " />
@@ -34,7 +34,7 @@ export default function Tools(  ) {
         </Link>
 
         {/* Card 2 - AR Explorer */}
-        <Link href="" className="primary-bg rounded-lg p-4 flex items-center space-x-4 transform transition duration-300 ease-in-out hover:scale-105 hover:shadow-lg">
+        <Link href="/ar-exploration" className="primary-bg rounded-lg p-4 flex items-center space-x-4 transform transition duration-300 ease-in-out hover:scale-105 hover:shadow-lg">
           <div className="relative">
             <div className="absolute -top-2 -right-2 bg-teal-800 p-[.150rem] rounded-full">
               <RiGeminiFill className="text-white text-xss  " />

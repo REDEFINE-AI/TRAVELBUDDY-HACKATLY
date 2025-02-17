@@ -155,6 +155,8 @@ async def generate_trip_packages(
     3. Allow reasonable time for transportation between locations
     4. Consider weather and daylight hours for outdoor activities
     5. Use the actual prices and booking URLs from the provided data
+    6. Ensure all JSON properties are properly quoted with double quotes
+    7. Do not include trailing commas in arrays or objects
     """
 
     try:
@@ -168,7 +170,7 @@ async def generate_trip_packages(
                 },
                 {"role": "user", "content": prompt_content},
             ],
-            max_tokens=1500,
+            max_tokens=4000,
             temperature=0.7,
         )
 

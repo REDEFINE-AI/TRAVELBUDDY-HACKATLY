@@ -170,14 +170,14 @@ const TripPlanner = () => {
           q: query,
           key: 'eff4152b754f41cdae480219c2bf84df',
           limit: 5,
-          no_annotations: 1
-        }
+          no_annotations: 1,
+        },
       });
       if (response.data.results.length > 0) {
         const suggestions = response.data.results.map((result: any) => ({
           formatted: result.formatted,
           city: result.components.city || result.components.town,
-          country: result.components.country
+          country: result.components.country,
         }));
         setLocationSuggestions(suggestions);
       } else {
@@ -205,10 +205,18 @@ const TripPlanner = () => {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('destination', "munnar");
+      formData.append('destination', 'munnar');
       // Format dates to day-month-year
-      const startDateFormatted = dateRange.startDate?.toLocaleDateString('en-GB').split('/').reverse().join('-');
-      const endDateFormatted = dateRange.endDate?.toLocaleDateString('en-GB').split('/').reverse().join('-');
+      const startDateFormatted = dateRange.startDate
+        ?.toLocaleDateString('en-GB')
+        .split('/')
+        .reverse()
+        .join('-');
+      const endDateFormatted = dateRange.endDate
+        ?.toLocaleDateString('en-GB')
+        .split('/')
+        .reverse()
+        .join('-');
       formData.append('start_date', startDateFormatted || '');
       formData.append('end_date', endDateFormatted || '');
       formData.append('travelers', travelers.toString());
@@ -221,7 +229,7 @@ const TripPlanner = () => {
 
       // Store the response data in localStorage or state management
       localStorage.setItem('tripData', JSON.stringify(response.data));
-      
+
       // Navigate to the itinerary page
       router.push('/trip-planner/itinerary');
     } catch (error) {
@@ -279,7 +287,7 @@ const TripPlanner = () => {
                     onClick={() => {
                       setDestination({
                         label: suggestion.formatted,
-                        value: suggestion.formatted
+                        value: suggestion.formatted,
                       });
                       setLocationSuggestions([]);
                     }}
@@ -305,7 +313,7 @@ const TripPlanner = () => {
             <div className="flex gap-2">
               <DatePicker
                 selected={dateRange.startDate}
-                onChange={(date) => setDateRange({ ...dateRange, startDate: date || undefined })}
+                onChange={date => setDateRange({ ...dateRange, startDate: date || undefined })}
                 selectsStart
                 startDate={dateRange.startDate}
                 endDate={dateRange.endDate}
@@ -314,7 +322,7 @@ const TripPlanner = () => {
               />
               <DatePicker
                 selected={dateRange.endDate}
-                onChange={(date) => setDateRange({ ...dateRange, endDate: date || undefined })}
+                onChange={date => setDateRange({ ...dateRange, endDate: date || undefined })}
                 selectsEnd
                 startDate={dateRange.startDate}
                 endDate={dateRange.endDate}
@@ -347,9 +355,25 @@ const TripPlanner = () => {
           >
             {loading ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Creating your trip...
               </span>
