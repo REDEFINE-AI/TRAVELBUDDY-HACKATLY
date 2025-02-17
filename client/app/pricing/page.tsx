@@ -18,34 +18,32 @@ const pricingPlans = [
       { text: 'Basic Trip Planning Tools', included: true },
       { text: 'Community Access', included: true },
       { text: 'Priority Support', included: false },
-      { text: 'Offline Access', included: false },
     ],
     ctaText: 'Start Exploring',
     popular: false,
-    color: 'teal'
+    color: 'teal',
   },
   {
     name: 'Wanderlust Buddy',
     nickname: 'Your Perfect Travel Partner',
-    price: 4.99,
+    price: 199,
     description: 'For the passionate traveler in you',
     features: [
-      { text: '50 AI Translations per month', included: true, icon: MdTranslate },
-      { text: '7 AI Trip Generations', included: true, icon: MdTravelExplore },
-      { text: '15 AR Landmark Explorations', included: true, icon: MdViewInAr },
+      { text: '100 AI Translations per month', included: true, icon: MdTranslate },
+      { text: '10 AI Trip Generations', included: true, icon: MdTravelExplore },
+      { text: '20 AR Landmark Explorations', included: true, icon: MdViewInAr },
       { text: 'Advanced Trip Planning', included: true },
       { text: 'Community Access', included: true },
       { text: 'Priority Support', included: true },
-      { text: 'Offline Access', included: false },
     ],
     ctaText: 'Choose Your Buddy',
     popular: true,
-    color: 'teal'
+    color: 'teal',
   },
   {
     name: 'Globetrotter Buddy',
     nickname: 'Ultimate Travel Companion',
-    price: 19.99,
+    price: 499,
     description: 'For the serious adventure seeker',
     features: [
       { text: 'Unlimited AI Translations', included: true, icon: MdTranslate },
@@ -54,12 +52,11 @@ const pricingPlans = [
       { text: 'Premium Trip Planning', included: true },
       { text: 'Priority Community Access', included: true },
       { text: '24/7 Priority Support', included: true },
-      { text: 'Offline Access', included: true },
     ],
     ctaText: 'Go Ultimate',
     popular: false,
-    color: 'teal'
-  }
+    color: 'teal',
+  },
 ];
 
 export default function PricingPage() {
@@ -76,7 +73,8 @@ export default function PricingPage() {
             Find Your Perfect Travel Buddy
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Choose the companion that matches your adventure style and unlock a world of possibilities
+            Choose the companion that matches your adventure style and unlock a world of
+            possibilities
           </p>
         </motion.div>
 
@@ -100,17 +98,13 @@ export default function PricingPage() {
 
               <div className={`p-6 ${plan.popular ? 'pt-12' : 'pt-6'}`}>
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                    {plan.name}
-                  </h3>
-                  <p className="text-gray-400 font-medium text-sm">
-                    {plan.nickname}
-                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{plan.name}</h3>
+                  <p className="text-gray-400 font-medium text-sm">{plan.nickname}</p>
                 </div>
-                
+
                 <div className="text-center mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    ${plan.price}
+                    {plan.price === 0 ? 'Free' : `₹${plan.price}`}
                   </span>
                   <span className="text-gray-600">/month</span>
                   <p className="text-gray-600 mt-2">{plan.description}</p>
@@ -118,16 +112,17 @@ export default function PricingPage() {
 
                 <ul className="space-y-4 mb-8">
                   {plan.features.map((feature, featureIndex) => (
-                    <li
-                      key={featureIndex}
-                      className="flex items-center space-x-3 p-2"
-                    >
+                    <li key={featureIndex} className="flex items-center space-x-3 p-2">
                       {feature.included ? (
                         <FaCheck className="text-teal-500 flex-shrink-0" />
                       ) : (
                         <FaTimes className="text-gray-300 flex-shrink-0" />
                       )}
-                      <span className={`${feature.included ? 'text-gray-700' : 'text-gray-400'} text-sm`}>
+                      <span
+                        className={`${
+                          feature.included ? 'text-gray-700' : 'text-gray-400'
+                        } text-sm`}
+                      >
                         {feature.text}
                       </span>
                       {feature.icon && <feature.icon className="text-teal-500 ml-auto" />}
@@ -138,9 +133,11 @@ export default function PricingPage() {
                 <Link
                   href="/signup"
                   className={`block w-full py-4 px-6 text-center rounded-xl font-medium transition-all
-                    ${plan.popular
-                      ? 'bg-teal-500 text-white hover:bg-teal-600'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    ${
+                      plan.popular
+                        ? 'bg-teal-500 text-white hover:bg-teal-600'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   {plan.ctaText}
                 </Link>
@@ -154,19 +151,22 @@ export default function PricingPage() {
           {[
             {
               title: 'Smart AI Translation',
-              description: 'Break language barriers instantly with our advanced AI translation system that works offline.',
-              icon: MdTranslate
+              description:
+                'Break language barriers instantly with our advanced AI translation system that works offline.',
+              icon: MdTranslate,
             },
             {
               title: 'Personalized Trips',
-              description: 'Get AI-powered trip suggestions perfectly tailored to your preferences and travel style.',
-              icon: MdTravelExplore
+              description:
+                'Get AI-powered trip suggestions perfectly tailored to your preferences and travel style.',
+              icon: MdTravelExplore,
             },
             {
               title: 'AR Exploration',
-              description: 'Discover landmarks and hidden gems through immersive augmented reality experiences.',
-              icon: MdViewInAr
-            }
+              description:
+                'Discover landmarks and hidden gems through immersive augmented reality experiences.',
+              icon: MdViewInAr,
+            },
           ].map((feature, index) => (
             <motion.div
               key={index}
@@ -187,11 +187,7 @@ export default function PricingPage() {
         </div>
 
         {/* FAQ Accordion */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="max-w-3xl mx-auto"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Frequently Asked Questions
           </h2>
@@ -199,16 +195,16 @@ export default function PricingPage() {
             {[
               {
                 q: 'Can I upgrade or downgrade my plan anytime?',
-                a: 'Yes, you can change your plan at any time. Changes will be reflected in your next billing cycle.'
+                a: 'Yes, you can change your plan at any time. Changes will be reflected in your next billing cycle.',
               },
               {
                 q: 'Do unused features roll over to the next month?',
-                a: 'No, features reset at the beginning of each billing cycle to ensure consistent service quality.'
+                a: 'No, features reset at the beginning of each billing cycle to ensure consistent service quality.',
               },
               {
                 q: 'Is there a long-term commitment?',
-                a: 'No, all plans are month-to-month and you can cancel anytime.'
-              }
+                a: 'No, all plans are month-to-month and you can cancel anytime.',
+              },
             ].map((faq, index) => (
               <motion.div
                 key={index}
@@ -217,9 +213,7 @@ export default function PricingPage() {
                 transition={{ delay: index * 0.1 }}
                 className="bg-white p-5 rounded-xl shadow-sm border border-gray-100"
               >
-                <h3 className="text-base font-semibold text-gray-900 mb-2">
-                  {faq.q}
-                </h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-2">{faq.q}</h3>
                 <p className="text-sm text-gray-600">{faq.a}</p>
               </motion.div>
             ))}

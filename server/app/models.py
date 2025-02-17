@@ -43,7 +43,19 @@ class User(Base):
     translations = relationship("Translator", back_populates="user")
     wallets = relationship("Wallet", back_populates="user")
     subscriptions = relationship("Subscription", back_populates="user")
+    emergency_contacts = relationship("EmergencyContact", back_populates="user")
 
+
+class EmergencyContact(Base):
+    __tablename__ = "emergency_contacts"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    name = Column(String)
+    phone = Column(String)
+    user_id = Column(String, ForeignKey("users.id"))
+
+    # Relationships
+    user = relationship("User")
 
 class TokenBlacklist(Base):
     __tablename__ = "token_blacklist"

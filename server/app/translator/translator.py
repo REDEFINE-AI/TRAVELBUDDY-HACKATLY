@@ -46,7 +46,7 @@ def translate_text(target_language: str, text: str) -> dict:
     summary="Transcribe and translate audio",
 )
 async def translate_audio(
-    user_id: str,
+    user_id: str = Form(...),
     audio_file: UploadFile = File(...),
     target_language: str = Form(...),
     db: Session = Depends(get_db),
@@ -96,7 +96,7 @@ async def translate_audio(
 
 
 @translator_router.get(
-    "/recent",
+    "/{user_id}/recent",
     summary="Get last 5 translated messages",
 )
 async def get_recent_translations(user_id: str, db: Session = Depends(get_db)):

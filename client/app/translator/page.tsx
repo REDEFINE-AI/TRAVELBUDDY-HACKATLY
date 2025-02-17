@@ -2,16 +2,17 @@
 
 import useAudioRecorder from '@/hooks/audio-player';
 import axiosInstance from '@/lib/axios';
-import { motion,  } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { FaCircle, FaRegCopy } from 'react-icons/fa';
 import { FaMicrophone } from 'react-icons/fa6';
 import { MdPause, MdPlayArrow } from 'react-icons/md';
-import { IoLanguage } from "react-icons/io5";
-import { LuAudioLines } from "react-icons/lu";
+import { IoLanguage } from 'react-icons/io5';
+import { LuAudioLines } from 'react-icons/lu';
 import { Toaster, toast } from 'react-hot-toast';
 import { useSpeechSynthesis } from 'react-speech-kit';
 import { AxiosError } from 'axios';
+import useAuthStore from '@/store/useAuthStore';
 
 interface AudioPlayerProps {
   isPlaying: boolean;
@@ -52,12 +53,8 @@ interface TranslatorToolProps {
 }
 
 export default function TranslatorTool() {
-  const {
-    isRecording,
-    audioFile,
-    startRecording,
-    stopRecording,
-  } = useAudioRecorder();
+  const { isRecording, audioFile, startRecording, stopRecording } = useAudioRecorder();
+  const user = useAuthStore(state => state.user);
 
   const languages = [
     { code: 'en-US', name: 'English', ttsCode: 'en-US' },
@@ -71,19 +68,25 @@ export default function TranslatorTool() {
   const [error, setError] = useState<any>(null);
   const [language, setLanguage] = useState(languages[0].code);
   const { speak, speaking, supported } = useSpeechSynthesis();
-  const [chatHistory, setChatHistory] = useState<Array<{
-    id: string;
-    original_text: string;
-    translation: string;
-    target_language: string;
-    created_at: string;
-    user_id?: string;
-  }>>([]);
+  const [chatHistory, setChatHistory] = useState<
+    Array<{
+      id: string;
+      original_text: string;
+      translation: string;
+      target_language: string;
+      created_at: string;
+      user_id?: string;
+    }>
+  >([]);
 
   // Fetch chat history
   const fetchChatHistory = async () => {
     try {
-      const response = await axiosInstance.get('/translator');
+      if (!user?.id) {
+        console.warn('No user ID available');
+        return;
+      }
+      const response = await axiosInstance.get(`/translator/${user.id}/recent`);
       setChatHistory(response.data);
     } catch (error) {
       console.error('Error fetching translation history:', error);
@@ -92,35 +95,49 @@ export default function TranslatorTool() {
   };
 
   useEffect(() => {
-    fetchChatHistory();
-  }, []);
+    if (user?.id) {
+      fetchChatHistory();
+    }
+  }, [user?.id]);
 
   async function getTranslation() {
     setLoading(true);
-    
+
     if (!audioFile.blob) {
       toast.error('Please record audio first');
+      setLoading(false);
       return;
     }
 
     const formData = new FormData();
     let audio_file = new File([audioFile.blob], 'audio.wav', { type: 'audio/wav' });
-    formData.append('audio_file', audio_file);        
+    formData.append('audio_file', audio_file);
     formData.append('target_language', language);
+    formData.append('user_id', user?.id || '');
 
     try {
-      await axiosInstance.post('/translator', formData, {
+      const response = await axiosInstance.post('/translator', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
-      // Fetch updated chat history immediately after successful translation
+
       await fetchChatHistory();
       toast.success('Translation completed!');
     } catch (error) {
-      console.error(error); 
-      toast.error(((error as AxiosError)?.response?.data as string) || 'Translation failed');
+      const axiosError = error as AxiosError;
+      let errorMessage = 'Translation failed';
+
+      if (axiosError.response?.status === 422) {
+        errorMessage = 'Invalid request: Please ensure audio file and language are properly set';
+      }
+
+      if (axiosError.response?.data && typeof axiosError.response.data === 'string') {
+        errorMessage = axiosError.response.data;
+      }
+
+      console.error('Translation error:', error);
+      toast.error(errorMessage);
       setError(error);
     } finally {
       setLoading(false);
@@ -130,22 +147,42 @@ export default function TranslatorTool() {
   const handleSpeak = (text: string, targetLanguage: string) => {
     if (supported) {
       const voices = window.speechSynthesis.getVoices();
-      const targetCode = targetLanguage.split('-')[0].toLowerCase();
-      
-      const matchingVoice = voices.find(voice => 
-        voice.lang.toLowerCase().startsWith(targetCode)
-      );
-      
+      const targetCode = targetLanguage.toLowerCase();
+      const languagePrefix = targetCode.split('-')[0];
+
+      // Try to find an exact match first
+      let matchingVoice = voices.find(voice => voice.lang.toLowerCase() === targetCode);
+
+      // If no exact match, try to find a voice that starts with the language code
+      if (!matchingVoice) {
+        matchingVoice = voices.find(voice => voice.lang.toLowerCase().startsWith(languagePrefix));
+      }
+
+      // If still no match, try to find any voice for that language
+      if (!matchingVoice) {
+        matchingVoice = voices.find(voice => voice.lang.toLowerCase().includes(languagePrefix));
+      }
+
       if (matchingVoice) {
         if (speaking) {
           window.speechSynthesis.cancel();
         }
-        speak({ 
-          text,
-          lang: matchingVoice.lang 
-        });
+
+        // Create and configure utterance
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.voice = matchingVoice;
+        utterance.lang = matchingVoice.lang;
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        // Use the native speechSynthesis API directly for better control
+        window.speechSynthesis.speak(utterance);
       } else {
-        toast.error(`Text-to-speech is not available for this language`);
+        toast.error(
+          `No voice available for ${
+            languages.find(l => l.code === targetLanguage)?.name || targetLanguage
+          }`,
+        );
       }
     } else {
       toast.error('Text-to-speech is not supported in your browser');
@@ -155,25 +192,26 @@ export default function TranslatorTool() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Changed: Reversed sort order to show latest messages at bottom
-  const sortedChatHistory = [...chatHistory].sort((a, b) => 
-    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  const sortedChatHistory = [...chatHistory].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
   );
-
-  {
-    error && <p className="text-red-500">{typeof error === 'string' ? error : error?.response?.data}</p>;
-  }
 
   return (
     <section className="w-full min-h-screen bg-white">
       <Toaster position="top-center" />
       <div className="absolute inset-0 bg-gradient-to-b from-teal-50/50 to-white" />
-      
+
       {/* Mobile-optimized container */}
       <div className="relative h-screen flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-teal-100 bg-white/80 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-teal-900">Live Translator</h1>
+            {error && (
+              <p className="text-red-500">
+                {typeof error === 'string' ? error : error?.response?.data}
+              </p>
+            )}
             <Dropdown text={languages[0].name} options={languages} onSelect={setLanguage} />
           </div>
         </div>
@@ -190,7 +228,7 @@ export default function TranslatorTool() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {chatHistory.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-4">
-              <button 
+              <button
                 className="p-4 rounded-full bg-teal-100 text-teal-600 mb-4"
                 aria-label="Start recording"
                 onClick={startRecording}
@@ -203,7 +241,7 @@ export default function TranslatorTool() {
               </p>
             </div>
           ) : (
-            sortedChatHistory.map((message) => (
+            sortedChatHistory.map(message => (
               <motion.div
                 key={message.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -216,7 +254,7 @@ export default function TranslatorTool() {
                     <p>{message.original_text}</p>
                   </div>
                 </div>
-                
+
                 {/* Translation - Receive theme */}
                 <div className="flex justify-start">
                   <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-2 max-w-[80%] group">
@@ -243,7 +281,7 @@ export default function TranslatorTool() {
               </motion.div>
             ))
           )}
-          
+
           {loading && (
             <div className="flex justify-center">
               <div className="bg-white/90 rounded-xl p-3 shadow-sm">
@@ -260,14 +298,14 @@ export default function TranslatorTool() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => isRecording ? stopRecording() : startRecording()}
+                onClick={() => (isRecording ? stopRecording() : startRecording())}
                 className={`h-14 w-14 rounded-full flex items-center justify-center text-white shadow-lg ${
                   isRecording ? 'bg-red-500' : 'bg-teal-500'
                 }`}
               >
                 {isRecording ? <FaCircle size={24} /> : <FaMicrophone size={24} />}
               </motion.button>
-              
+
               {audioFile.blob && (
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -283,9 +321,7 @@ export default function TranslatorTool() {
               )}
             </div>
             {isRecording && (
-              <span className="text-sm text-teal-600 animate-pulse">
-                Recording... Tap to stop
-              </span>
+              <span className="text-sm text-teal-600 animate-pulse">Recording... Tap to stop</span>
             )}
           </div>
         </div>
@@ -296,7 +332,7 @@ export default function TranslatorTool() {
 
 interface DropdownProps {
   text: string;
-  options: { code: string; name: string; }[];
+  options: { code: string; name: string }[];
   onSelect: (code: string) => void;
 }
 

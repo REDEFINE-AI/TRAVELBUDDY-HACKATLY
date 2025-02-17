@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, Variants, Transition } from "framer-motion";
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence, Variants, Transition } from 'framer-motion';
 import {
   MdCamera,
   MdCameraEnhance,
@@ -17,8 +17,9 @@ import {
   MdClose,
   MdPlayArrow,
   MdPause,
-} from "react-icons/md";
-import { FaSpinner } from "react-icons/fa";
+  MdFileUpload,
+} from 'react-icons/md';
+import { FaSpinner } from 'react-icons/fa';
 
 // Types
 interface CameraState {
@@ -30,6 +31,7 @@ interface CaptureState {
   image: string | null;
   isScanning: boolean;
   isProcessing: boolean;
+  uploadedImage: string | null;
 }
 
 interface Location {
@@ -43,7 +45,7 @@ interface HistoricalData {
   year: string;
   architecture: string;
   culturalSignificance: string;
-  timeline: Array<{year: string, event: string}>;
+  timeline: Array<{ year: string; event: string }>;
 }
 
 interface AudioPlayerProps {
@@ -63,34 +65,63 @@ const scanAnimationVariants: Variants = {
     transition: {
       duration: 1,
       repeat: Infinity,
-      repeatType: "reverse" as const,
+      repeatType: 'reverse' as const,
     },
   },
 };
 
 const modalVariants: Variants = {
   hidden: {
-    y: "100%",
+    y: '100%',
   },
   visible: {
-    y: "0%",
+    y: '0%',
     transition: {
-      type: "spring",
+      type: 'spring',
       damping: 30,
       stiffness: 300,
     },
   },
   exit: {
-    y: "100%",
+    y: '100%',
     transition: {
-      type: "spring",
+      type: 'spring',
       damping: 30,
       stiffness: 300,
     },
   },
 };
 
-// New Component for Audio Player with proper typing
+// Add new WaveformAnimation component
+const WaveformAnimation: React.FC<{ isPlaying: boolean }> = ({ isPlaying }) => {
+  return (
+    <div className="flex items-center gap-[2px] h-4">
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="w-[2px] bg-teal-500"
+          animate={
+            isPlaying
+              ? {
+                  height: ['20%', `${Math.random() * 100}%`, '20%'],
+                }
+              : {
+                  height: '20%',
+                }
+          }
+          transition={{
+            duration: 0.8,
+            repeat: Infinity,
+            delay: i * 0.1,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Update AudioPlayer component
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ isPlaying, onToggle }) => {
   return (
     <motion.div
@@ -105,13 +136,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ isPlaying, onToggle }) => {
         {isPlaying ? <MdPause size={24} /> : <MdPlayArrow size={24} />}
       </motion.button>
       <div className="flex-1">
-        <div className="h-1 bg-teal-100 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: "0%" }}
-            animate={isPlaying ? { width: "100%" } : { width: "0%" }}
-            transition={{ duration: 30, ease: "linear" }}
-            className="h-full bg-teal-500"
-          />
+        <div className="h-4 rounded-full overflow-hidden flex items-center">
+          <WaveformAnimation isPlaying={isPlaying} />
         </div>
         <p className="text-xs text-teal-700 mt-1">Historical Narration</p>
       </div>
@@ -133,11 +159,11 @@ const ScanningAnimation: React.FC = () => {
           transition={{
             duration: 3,
             repeat: Infinity,
-            ease: "linear"
+            ease: 'linear',
           }}
           className="absolute inset-0 w-40 h-40 border-4 border-teal-500/30 rounded-full"
         />
-        
+
         {/* Middle pulsing ring */}
         <motion.div
           animate={{
@@ -147,7 +173,7 @@ const ScanningAnimation: React.FC = () => {
           transition={{
             duration: 2,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: 'easeInOut',
           }}
           className="absolute inset-0 w-32 h-32 border-2 border-teal-400/60 rounded-full m-4"
         />
@@ -161,8 +187,8 @@ const ScanningAnimation: React.FC = () => {
             transition={{
               duration: 1.5,
               repeat: Infinity,
-              repeatType: "reverse",
-              ease: "linear"
+              repeatType: 'reverse',
+              ease: 'linear',
             }}
             className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-teal-500/50 to-transparent"
           />
@@ -174,7 +200,7 @@ const ScanningAnimation: React.FC = () => {
             transition={{
               duration: 2,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: 'easeInOut',
             }}
             className="absolute inset-0 bg-teal-400/20"
           />
@@ -193,7 +219,7 @@ const ScanningAnimation: React.FC = () => {
             transition={{
               duration: 3,
               repeat: Infinity,
-              ease: "linear",
+              ease: 'linear',
               delay: i * 0.3,
             }}
             className="absolute inset-0"
@@ -212,7 +238,7 @@ const ScanningAnimation: React.FC = () => {
       </div>
 
       {/* Scanning text */}
-      <motion.div 
+      <motion.div
         className="absolute mt-32 text-center"
         animate={{
           opacity: [0.5, 1, 0.5],
@@ -220,7 +246,7 @@ const ScanningAnimation: React.FC = () => {
         transition={{
           duration: 2,
           repeat: Infinity,
-          ease: "easeInOut"
+          ease: 'easeInOut',
         }}
       >
         <p className="text-teal-700 font-medium">Analyzing Landmark</p>
@@ -258,17 +284,18 @@ const ModalContent: React.FC = () => {
 };
 
 // Add test image URL
-const TEST_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/640px-Taj_Mahal_%28Edited%29.jpeg";
+const TEST_IMAGE_URL =
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/640px-Taj_Mahal_%28Edited%29.jpeg';
 
 // Updated urlToBase64 function with proper error handling
 const urlToBase64 = async (url: string): Promise<string> => {
   try {
-    console.log("Fetching image from URL:", url);
+    console.log('Fetching image from URL:', url);
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
-    
+
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -276,19 +303,148 @@ const urlToBase64 = async (url: string): Promise<string> => {
         if (typeof reader.result === 'string') {
           // Get only the base64 data without the prefix
           const base64 = reader.result.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-          console.log("Base64 conversion successful, length:", base64.length);
+          console.log('Base64 conversion successful, length:', base64.length);
           resolve(base64);
         } else {
           reject(new Error('Failed to convert to base64'));
         }
       };
-      reader.onerror = (error) => reject(error);
+      reader.onerror = error => reject(error);
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error("Error in urlToBase64:", error);
+    console.error('Error in urlToBase64:', error);
     throw error;
   }
+};
+
+// Add new interface for upload modal
+interface UploadModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onUpload: (imageUrl: string) => void;
+}
+
+// Add new UploadModal component before ARExplorer
+const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpload = () => {
+    if (selectedImage) {
+      onUpload(selectedImage);
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    >
+      <motion.div
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4"
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-gray-800">Upload Test Image</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+            <MdClose className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div
+          onDragOver={e => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+            isDragging ? 'border-teal-500 bg-teal-50' : 'border-gray-300'
+          }`}
+        >
+          {selectedImage ? (
+            <div className="space-y-4">
+              <img src={selectedImage} alt="Selected" className="max-h-64 mx-auto rounded-lg" />
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="text-red-500 text-sm hover:underline"
+              >
+                Remove Image
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <MdFileUpload className="w-12 h-12 text-teal-500 mx-auto" />
+              <div className="space-y-2">
+                <p className="text-gray-600">Drag and drop an image here, or</p>
+                <label className="inline-block px-4 py-2 bg-teal-500 text-white rounded-lg cursor-pointer hover:bg-teal-600 transition-colors">
+                  Browse Files
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInput}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleUpload}
+            disabled={!selectedImage}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              selectedImage
+                ? 'bg-teal-500 text-white hover:bg-teal-600'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Upload & Analyze
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 };
 
 const ARExplorer: React.FC = () => {
@@ -301,16 +457,18 @@ const ARExplorer: React.FC = () => {
     image: null,
     isScanning: false,
     isProcessing: false,
+    uploadedImage: null,
   });
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [location, setLocation] = useState<Location | null>(null);
   const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
+  const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 
   useEffect(() => {
     return () => {
@@ -321,15 +479,13 @@ const ARExplorer: React.FC = () => {
   // Silently get location
   const getLocationSilently = async () => {
     try {
-      const position = await new Promise<GeolocationPosition>(
-        (resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0,
-          });
-        }
-      );
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        });
+      });
 
       setLocation({
         latitude: position.coords.latitude,
@@ -337,7 +493,7 @@ const ARExplorer: React.FC = () => {
       });
     } catch (err) {
       // Silently handle location error
-      console.error("Location error:", err);
+      console.error('Location error:', err);
     }
   };
 
@@ -360,15 +516,15 @@ const ARExplorer: React.FC = () => {
       getLocationSilently();
     } catch (err) {
       const errorMessage =
-        err instanceof DOMException && err.name === "NotAllowedError"
-          ? "Camera permission denied. Please allow access to continue."
-          : "Unable to access the camera. Please try again.";
+        err instanceof DOMException && err.name === 'NotAllowedError'
+          ? 'Camera permission denied. Please allow access to continue.'
+          : 'Unable to access the camera. Please try again.';
       setCameraState({ isActive: false, error: errorMessage });
     }
   };
 
   const stopCamera = (): void => {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current?.getTracks().forEach(track => track.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setCameraState({ isActive: false, error: null });
@@ -377,14 +533,14 @@ const ARExplorer: React.FC = () => {
   const captureImage = (): void => {
     if (!videoRef.current) return;
 
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(videoRef.current, 0, 0);
-      const imageUrl = canvas.toDataURL("image/jpeg", 0.8);
+      const imageUrl = canvas.toDataURL('image/jpeg', 0.8);
       setCaptureState({ ...captureState, image: imageUrl });
       stopCamera();
       setModalOpen(true);
@@ -395,8 +551,8 @@ const ARExplorer: React.FC = () => {
     setCaptureState({ ...captureState, isScanning: true, isProcessing: true });
 
     try {
-      console.log("Starting AI scan...");
-      
+      console.log('Starting AI scan...');
+
       // First validate API key
       const apiKey = process.env.NEXT_PUBLIC_RAPID_API_KEY;
       if (!apiKey) {
@@ -405,59 +561,64 @@ const ARExplorer: React.FC = () => {
 
       // Convert test image to base64
       const base64Image = await urlToBase64(TEST_IMAGE_URL);
-      
+
       // Prepare the request body
       const requestBody = {
         image: base64Image, // Send base64 string instead of URL
-        language: 'en'
+        language: 'en',
       };
 
-      console.log("Making API request...");
-      
-      const visionResponse = await fetch('https://ultimate-cloud-vision-image.p.rapidapi.com/google/cloudvision/landmarks', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'X-RapidAPI-Key': apiKey,
-          'X-RapidAPI-Host': 'ultimate-cloud-vision-image.p.rapidapi.com'
+      console.log('Making API request...');
+
+      const visionResponse = await fetch(
+        'https://ultimate-cloud-vision-image.p.rapidapi.com/google/cloudvision/landmarks',
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'ultimate-cloud-vision-image.p.rapidapi.com',
+          },
+          body: JSON.stringify(requestBody),
         },
-        body: JSON.stringify(requestBody)
-      });
+      );
 
       // Detailed error logging
       if (!visionResponse.ok) {
         const errorText = await visionResponse.text();
-        console.error("API Error Details:", {
+        console.error('API Error Details:', {
           status: visionResponse.status,
           statusText: visionResponse.statusText,
           headers: Object.fromEntries(visionResponse.headers.entries()),
-          error: errorText
+          error: errorText,
         });
         throw new Error(`API request failed (${visionResponse.status}): ${errorText}`);
       }
 
       const visionData = await visionResponse.json();
-      console.log("Vision API response:", visionData);
+      console.log('Vision API response:', visionData);
 
       if (!Array.isArray(visionData) || visionData.length === 0) {
-        console.error("No landmarks detected in the response:", visionData);
+        console.error('No landmarks detected in the response:', visionData);
         throw new Error('No landmark detected in the image');
       }
 
       const landmark = visionData[0]; // Get the first landmark
       const landmarkName = landmark.description;
-      console.log("Successfully detected landmark:", landmarkName);
+      console.log('Successfully detected landmark:', landmarkName);
 
       // 2. Get Wikipedia information about the landmark
-      console.log("Fetching Wikipedia information...");
+      console.log('Fetching Wikipedia information...');
       const wikiResponse = await fetch(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(landmarkName)}`
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(landmarkName)}`,
       );
       const wikiData = await wikiResponse.json();
 
       // 3. Get additional cultural information using Wikipedia API
       const wikiCultureResponse = await fetch(
-        `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(landmarkName)}&origin=*`
+        `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(
+          landmarkName,
+        )}&origin=*`,
       );
       const wikiCultureData = await wikiCultureResponse.json();
       const pageId = Object.keys(wikiCultureData.query.pages)[0];
@@ -467,25 +628,24 @@ const ARExplorer: React.FC = () => {
       const historicalInfo = {
         title: landmarkName,
         description: wikiData.extract,
-        year: extractYear(wikiData.extract) || "Historical",
-        architecture: extractArchitectureInfo(culturalInfo) || "Notable Architecture",
+        year: extractYear(wikiData.extract) || 'Historical',
+        architecture: extractArchitectureInfo(culturalInfo) || 'Notable Architecture',
         culturalSignificance: culturalInfo,
-        timeline: generateTimeline(wikiData.extract, culturalInfo)
+        timeline: generateTimeline(wikiData.extract, culturalInfo),
       };
 
-      console.log("Setting historical data:", historicalInfo);
+      console.log('Setting historical data:', historicalInfo);
       setHistoricalData(historicalInfo);
 
       // Start voice narration automatically
       startNarration(historicalInfo);
       setModalOpen(true);
-
     } catch (err) {
-      console.error("AI scan failed:", err);
+      console.error('AI scan failed:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setCameraState({ 
-        ...cameraState, 
-        error: `Analysis failed: ${errorMessage}. Please try again.`
+      setCameraState({
+        ...cameraState,
+        error: `Analysis failed: ${errorMessage}. Please try again.`,
       });
     } finally {
       setCaptureState({
@@ -507,7 +667,7 @@ const ARExplorer: React.FC = () => {
   const extractArchitectureInfo = (text: string): string | null => {
     const architectureKeywords = ['architecture', 'built', 'designed', 'style', 'structure'];
     const sentences = text.split('. ');
-    
+
     for (const sentence of sentences) {
       if (architectureKeywords.some(keyword => sentence.toLowerCase().includes(keyword))) {
         return sentence;
@@ -517,8 +677,11 @@ const ARExplorer: React.FC = () => {
   };
 
   // Helper function to generate timeline
-  const generateTimeline = (mainText: string, culturalText: string): Array<{year: string, event: string}> => {
-    const timeline: Array<{year: string, event: string}> = [];
+  const generateTimeline = (
+    mainText: string,
+    culturalText: string,
+  ): Array<{ year: string; event: string }> => {
+    const timeline: Array<{ year: string; event: string }> = [];
     const combinedText = `${mainText} ${culturalText}`;
     const yearRegex = /\b(1[0-9]{3}|20[0-2][0-9])\b/g;
     const sentences = combinedText.split('. ');
@@ -528,7 +691,7 @@ const ARExplorer: React.FC = () => {
       if (year) {
         timeline.push({
           year: year[0],
-          event: sentence.trim()
+          event: sentence.trim(),
         });
       }
     });
@@ -543,22 +706,44 @@ const ARExplorer: React.FC = () => {
     // Cancel any ongoing speech
     synth.cancel();
 
-    // Create narrative script
+    // Create a detailed, structured narrative script
     const narrativeScript = `
-      ${content.title}. 
-      About this landmark: ${content.description}
-      
-      Architectural Details: ${content.architecture}
-      
-      Cultural Significance: ${content.culturalSignificance}
-      
-      Historical Timeline: ${content.timeline.map(event => 
-        `In ${event.year}, ${event.event}`
-      ).join('. ')}
+      Welcome to ${content.title}.
+
+      Let me tell you about this historical landmark.
+
+      First, some quick facts.
+      This landmark was built in ${content.year}.
+      It represents a magnificent example of historical architecture.
+
+      Let me share the detailed description.
+      ${content.description}
+
+      Now, let's explore the architectural details.
+      ${content.architecture}
+
+      This landmark holds great cultural significance.
+      ${content.culturalSignificance}
+
+      Let me walk you through the fascinating timeline of events.
+      ${content.timeline
+        .map((event, index) => {
+          if (index === 0) {
+            return `The history begins in ${event.year}, when ${event.event}`;
+          }
+          return `Later in ${event.year}, ${event.event}`;
+        })
+        .join('. ')}
+
+      That concludes our detailed exploration of ${content.title}.
+      Thank you for listening to this historical journey.
     `;
 
-    // Split into smaller chunks for better narration
-    const chunks = narrativeScript.split(/[.!?]+/).filter(chunk => chunk.trim());
+    // Split into meaningful chunks for natural-sounding narration
+    const chunks = narrativeScript
+      .split(/[.!?]+/)
+      .filter(chunk => chunk.trim().length > 0)
+      .map(chunk => chunk.trim());
 
     let currentChunkIndex = 0;
 
@@ -569,28 +754,39 @@ const ARExplorer: React.FC = () => {
       }
 
       const utterance = new SpeechSynthesisUtterance(chunks[currentChunkIndex]);
-      
+
       // Configure voice
       const voices = synth.getVoices();
-      const preferredVoice = voices.find(voice => 
-        voice.name.includes('Google') || voice.name.includes('Premium')
+      const preferredVoice = voices.find(
+        voice => voice.name.includes('Google') || voice.name.includes('Premium'),
       );
       if (preferredVoice) {
         utterance.voice = preferredVoice;
       }
 
-      // Configure speech parameters
-      utterance.rate = 0.9;  // Slightly slower for clarity
-      utterance.pitch = 1;
-      utterance.volume = 1;
+      // Optimize speech parameters for clarity and engagement
+      utterance.rate = 0.9; // Slightly slower for better comprehension
+      utterance.pitch = 1; // Natural pitch
+      utterance.volume = 1; // Full volume
+
+      // Add slight pauses between sections for better pacing
+      if (
+        chunks[currentChunkIndex].includes('Let me') ||
+        chunks[currentChunkIndex].includes('Now,')
+      ) {
+        utterance.rate = 0.85; // Slightly slower for section transitions
+      }
 
       // Handle chunk completion
       utterance.onend = () => {
-        currentChunkIndex++;
-        speakNextChunk();
+        // Add a small pause between chunks for better pacing
+        setTimeout(() => {
+          currentChunkIndex++;
+          speakNextChunk();
+        }, 300);
       };
 
-      utterance.onerror = (event) => {
+      utterance.onerror = event => {
         console.error('Speech synthesis error:', event);
         setIsPlaying(false);
       };
@@ -635,25 +831,137 @@ const ARExplorer: React.FC = () => {
   const validateApiKey = () => {
     const apiKey = process.env.NEXT_PUBLIC_RAPID_API_KEY;
     if (!apiKey) {
-      console.error("RapidAPI key is not set in environment variables!");
+      console.error('RapidAPI key is not set in environment variables!');
       return false;
     }
     return true;
   };
 
   // Update the test button click handler
-  const handleTestClick = async () => {
+  const handleTestClick = () => {
     if (!validateApiKey()) {
-      setCameraState({ 
-        isActive: false, 
-        error: "API key is not configured. Please check the setup." 
+      setCameraState({
+        isActive: false,
+        error: 'API key is not configured. Please check the setup.',
       });
       return;
     }
-    await performAIScan();
+    setIsUploadModalOpen(true);
   };
 
-  // ModalContent component inside main component to access state
+  // Update handleImageUpload to store the uploaded image
+  const handleImageUpload = async (imageUrl: string) => {
+    try {
+      setCaptureState(prev => ({
+        ...prev,
+        isScanning: true,
+        isProcessing: true,
+        uploadedImage: imageUrl,
+      }));
+
+      // Extract base64 data from the Data URL
+      const base64Image = imageUrl.split(',')[1];
+
+      // Validate API key
+      const apiKey = process.env.NEXT_PUBLIC_RAPID_API_KEY;
+      if (!apiKey) {
+        throw new Error('API key is not configured');
+      }
+
+      // Prepare the request body
+      const requestBody = {
+        image: base64Image,
+        language: 'en',
+      };
+
+      console.log('Making API request...');
+
+      const visionResponse = await fetch(
+        'https://ultimate-cloud-vision-image.p.rapidapi.com/google/cloudvision/landmarks',
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'ultimate-cloud-vision-image.p.rapidapi.com',
+          },
+          body: JSON.stringify(requestBody),
+        },
+      );
+
+      // Detailed error logging
+      if (!visionResponse.ok) {
+        const errorText = await visionResponse.text();
+        console.error('API Error Details:', {
+          status: visionResponse.status,
+          statusText: visionResponse.statusText,
+          headers: Object.fromEntries(visionResponse.headers.entries()),
+          error: errorText,
+        });
+        throw new Error(`API request failed (${visionResponse.status}): ${errorText}`);
+      }
+
+      const visionData = await visionResponse.json();
+      console.log('Vision API response:', visionData);
+
+      if (!Array.isArray(visionData) || visionData.length === 0) {
+        console.error('No landmarks detected in the response:', visionData);
+        throw new Error('No landmark detected in the image');
+      }
+
+      const landmark = visionData[0]; // Get the first landmark
+      const landmarkName = landmark.description;
+      console.log('Successfully detected landmark:', landmarkName);
+
+      // Get Wikipedia information about the landmark
+      console.log('Fetching Wikipedia information...');
+      const wikiResponse = await fetch(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(landmarkName)}`,
+      );
+      const wikiData = await wikiResponse.json();
+
+      // Get additional cultural information using Wikipedia API
+      const wikiCultureResponse = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(
+          landmarkName,
+        )}&origin=*`,
+      );
+      const wikiCultureData = await wikiCultureResponse.json();
+      const pageId = Object.keys(wikiCultureData.query.pages)[0];
+      const culturalInfo = wikiCultureData.query.pages[pageId].extract;
+
+      // Update historical data with gathered information
+      const historicalInfo = {
+        title: landmarkName,
+        description: wikiData.extract,
+        year: extractYear(wikiData.extract) || 'Historical',
+        architecture: extractArchitectureInfo(culturalInfo) || 'Notable Architecture',
+        culturalSignificance: culturalInfo,
+        timeline: generateTimeline(wikiData.extract, culturalInfo),
+      };
+
+      console.log('Setting historical data:', historicalInfo);
+      setHistoricalData(historicalInfo);
+
+      // Start voice narration automatically
+      startNarration(historicalInfo);
+      setModalOpen(true);
+    } catch (error) {
+      console.error('Error processing uploaded image:', error);
+      setCameraState({
+        isActive: false,
+        error: 'Failed to process the uploaded image. Please try again.',
+      });
+    } finally {
+      setCaptureState(prev => ({
+        ...prev,
+        isProcessing: false,
+        isScanning: false,
+      }));
+    }
+  };
+
+  // Update ModalContent to use the uploaded image
   const ModalContent = () => {
     if (!historicalData) return null;
 
@@ -667,16 +975,16 @@ const ARExplorer: React.FC = () => {
       >
         {/* Header with Image */}
         <div className="relative mb-6">
-          <button 
-            onClick={() => setModalOpen(false)} 
+          <button
+            onClick={() => setModalOpen(false)}
             className="absolute right-2 top-2 z-10 bg-white/80 backdrop-blur-sm p-2 rounded-full"
           >
             <MdClose className="w-6 h-6 text-gray-600" />
           </button>
-          
+
           <div className="relative h-48 rounded-2xl overflow-hidden mb-4">
-            <img 
-              src={TEST_IMAGE_URL} 
+            <img
+              src={captureState.uploadedImage || captureState.image || ''}
               alt={historicalData.title}
               className="w-full h-full object-cover"
             />
@@ -750,9 +1058,7 @@ const ARExplorer: React.FC = () => {
                     <div className="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
                       {event.year}
                     </div>
-                    <p className="text-purple-900 flex-1 text-sm leading-relaxed">
-                      {event.event}
-                    </p>
+                    <p className="text-purple-900 flex-1 text-sm leading-relaxed">{event.event}</p>
                   </div>
                 ))}
               </div>
@@ -788,17 +1094,12 @@ const ARExplorer: React.FC = () => {
                 {!cameraState.isActive && !captureState.image ? (
                   <div className="flex flex-col items-center justify-center h-full p-6 space-y-4 bg-white bg-opacity-90">
                     <MdQrCodeScanner className="w-20 h-20 text-teal-500 animate-pulse" />
-                    <h2 className="text-xl font-semibold text-teal-800">
-                      Ready to Explore?
-                    </h2>
+                    <h2 className="text-xl font-semibold text-teal-800">Ready to Explore?</h2>
                     {cameraState.error ? (
-                      <p className="text-sm text-red-600 text-center">
-                        {cameraState.error}
-                      </p>
+                      <p className="text-sm text-red-600 text-center">{cameraState.error}</p>
                     ) : (
                       <p className="text-sm text-teal-600 text-center">
-                        Allow camera access to explore hidden stories around
-                        you.
+                        Allow camera access to explore hidden stories around you.
                       </p>
                     )}
                     <motion.button
@@ -882,11 +1183,14 @@ const ARExplorer: React.FC = () => {
           </motion.div>
         </div>
       </div>
+      <AnimatePresence>{modalOpen && <ModalContent />}</AnimatePresence>
+      <AnimatePresence>{captureState.isScanning && renderScanningOverlay()}</AnimatePresence>
       <AnimatePresence>
-        {modalOpen && <ModalContent />}
-      </AnimatePresence>
-      <AnimatePresence>
-        {captureState.isScanning && renderScanningOverlay()}
+        <UploadModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onUpload={handleImageUpload}
+        />
       </AnimatePresence>
     </div>
   );

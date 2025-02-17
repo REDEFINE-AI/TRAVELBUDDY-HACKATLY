@@ -3,10 +3,25 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaPlane, FaShieldAlt, FaRegLifeRing, FaUserFriends, FaBars, FaTimes, FaCheck } from 'react-icons/fa'; // Importing icons
+import {
+  FaPlane,
+  FaShieldAlt,
+  FaRegLifeRing,
+  FaUserFriends,
+  FaBars,
+  FaTimes,
+  FaCheck,
+} from 'react-icons/fa'; // Importing icons
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion'; // Importing animation library
 import { MdTranslate, MdTravelExplore, MdViewInAr } from 'react-icons/md';
-import { HiSparkles, HiGlobe, HiChartBar, HiLightningBolt, HiCube, HiArrowRight } from 'react-icons/hi';
+import {
+  HiSparkles,
+  HiGlobe,
+  HiChartBar,
+  HiLightningBolt,
+  HiCube,
+  HiArrowRight,
+} from 'react-icons/hi';
 import { SiOpenai, SiFramer, SiVercel } from 'react-icons/si';
 
 const pricingPlans = [
@@ -21,31 +36,29 @@ const pricingPlans = [
       { text: 'Basic Trip Planning Tools', included: true },
       { text: 'Community Access', included: true },
       { text: 'Priority Support', included: false },
-      { text: 'Offline Access', included: false },
     ],
     ctaText: 'Start Exploring',
-    popular: false
+    popular: false,
   },
   {
     name: 'Wanderlust Buddy',
     nickname: 'Your Perfect Travel Partner',
-    price: 4.99,
+    price: 199,
     features: [
-      { text: '50 AI Translations per month', included: true, icon: MdTranslate },
-      { text: '7 AI Trip Generations', included: true, icon: MdTravelExplore },
-      { text: '15 AR Landmark Explorations', included: true, icon: MdViewInAr },
+      { text: '100 AI Translations per month', included: true, icon: MdTranslate },
+      { text: '10 AI Trip Generations', included: true, icon: MdTravelExplore },
+      { text: '20 AR Landmark Explorations', included: true, icon: MdViewInAr },
       { text: 'Advanced Trip Planning', included: true },
       { text: 'Community Access', included: true },
       { text: 'Priority Support', included: true },
-      { text: 'Offline Access', included: false },
     ],
     ctaText: 'Choose Your Buddy',
-    popular: true
+    popular: true,
   },
   {
     name: 'Globetrotter Buddy',
     nickname: 'Ultimate Travel Companion',
-    price: 19.99,
+    price: 499,
     features: [
       { text: 'Unlimited AI Translations', included: true, icon: MdTranslate },
       { text: 'Unlimited Trip Generations', included: true, icon: MdTravelExplore },
@@ -53,11 +66,10 @@ const pricingPlans = [
       { text: 'Premium Trip Planning', included: true },
       { text: 'Priority Community Access', included: true },
       { text: '24/7 Priority Support', included: true },
-      { text: 'Offline Access', included: true },
     ],
     ctaText: 'Go Ultimate',
-    popular: false
-  }
+    popular: false,
+  },
 ];
 
 const Navbar = () => {
@@ -73,7 +85,11 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-lg' : 'bg-transparent'}`}>
+    <nav
+      className={`fixed w-full z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/80 backdrop-blur-md shadow-lg' : 'bg-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
@@ -82,19 +98,30 @@ const Navbar = () => {
               <span className="ml-2 text-xl font-bold text-gray-900">TravelBuddy</span>
             </Link>
           </div>
-          
+
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-8">
-              <Link href="#features" className="text-gray-700 hover:text-teal-600 transition">Features</Link>
-              <Link href="#services" className="text-gray-700 hover:text-teal-600 transition">Services</Link>
-              <Link href="#pricing" className="text-gray-700 hover:text-teal-600 transition">Pricing</Link>
-              <Link href="/login" className="text-gray-700 hover:text-teal-600 transition">Login</Link>
-              <Link href="/signup" className="bg-gradient-to-r from-teal-500 to-blue-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition">
+              <Link href="#features" className="text-gray-700 hover:text-teal-600 transition">
+                Features
+              </Link>
+              <Link href="#services" className="text-gray-700 hover:text-teal-600 transition">
+                Services
+              </Link>
+              <Link href="#pricing" className="text-gray-700 hover:text-teal-600 transition">
+                Pricing
+              </Link>
+              <Link href="/login" className="text-gray-700 hover:text-teal-600 transition">
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="bg-gradient-to-r from-teal-500 to-blue-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition"
+              >
                 Get Started
               </Link>
             </div>
           </div>
-          
+
           <div className="md:hidden">
             <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700">
               {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
@@ -102,9 +129,9 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
-      <motion.div 
+      <motion.div
         className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : -20 }}
@@ -123,13 +150,13 @@ const LandingPage = () => {
   const scaleProgress = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
-    restDelta: 0.001
+    restDelta: 0.001,
   });
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] dark:bg-gray-900">
       <Navbar />
-      
+
       {/* Hero Section - Modern Gradient + 3D Element */}
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,37 +169,39 @@ const LandingPage = () => {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 mb-6">
                 <HiSparkles className="text-teal-600" />
-                <span className="text-sm text-teal-800 dark:text-teal-200">AI-Powered Travel Planning</span>
+                <span className="text-sm text-teal-800 dark:text-teal-200">
+                  AI-Powered Travel Planning
+                </span>
               </div>
-              
+
               <h1 className="text-6xl font-bold leading-tight">
                 Your Next-Gen
                 <span className="block mt-2 bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Travel Companion
                 </span>
               </h1>
-              
+
               <p className="mt-6 text-xl text-gray-600 dark:text-gray-300">
-                Experience the future of travel planning with our AI-powered platform.
-                Smart itineraries, real-time translations, and immersive AR experiences.
+                Experience the future of travel planning with our AI-powered platform. Smart
+                itineraries, real-time translations, and immersive AR experiences.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Link href="/signup" className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-teal-500 to-blue-500 rounded-full shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-medium text-white bg-gradient-to-r from-teal-500 to-blue-500 rounded-full shadow-lg shadow-teal-500/25 hover:shadow-xl transition-all duration-300"
+                  >
                     Start Free Trial
                     <HiLightningBolt className="ml-2" />
                   </Link>
                 </motion.div>
-                
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Link href="#demo" className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-medium text-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300">
+
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    href="#demo"
+                    className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-medium text-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
+                  >
                     Watch Demo
                   </Link>
                 </motion.div>
@@ -180,7 +209,9 @@ const LandingPage = () => {
 
               {/* Trust Badges */}
               <div className="mt-12">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Trusted by leading companies</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Trusted by leading companies
+                </p>
                 <div className="flex flex-wrap gap-6 items-center">
                   {[SiOpenai, SiFramer, SiVercel].map((Icon, index) => (
                     <Icon key={index} className="h-6 w-auto text-gray-400 dark:text-gray-600" />
@@ -199,7 +230,7 @@ const LandingPage = () => {
               {/* Gradient Blobs */}
               <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-r from-teal-300/30 to-blue-300/30 rounded-full blur-3xl" />
               <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-r from-purple-300/30 to-pink-300/30 rounded-full blur-3xl" />
-              
+
               {/* Main Image */}
               <div className="relative z-10">
                 <Image
@@ -210,7 +241,7 @@ const LandingPage = () => {
                   className="w-full h-auto"
                 />
               </div>
-              
+
               {/* Floating Elements */}
               <motion.div
                 animate={{ y: [0, 20, 0] }}
@@ -262,11 +293,14 @@ const LandingPage = () => {
                     </div>
                     <h3 className="text-3xl font-bold text-white mb-4">AI-Powered Trip Planning</h3>
                     <p className="text-white/90 text-lg max-w-lg">
-                      Our advanced AI analyzes millions of travel experiences to create perfectly tailored itineraries that match your preferences and travel style.
+                      Our advanced AI analyzes millions of travel experiences to create perfectly
+                      tailored itineraries that match your preferences and travel style.
                     </p>
                   </div>
-                  <Link href="/features" 
-                    className="inline-flex items-center space-x-2 bg-white/20 hover:bg-white/30 transition px-6 py-3 rounded-full text-white font-medium backdrop-blur-sm group">
+                  <Link
+                    href="/features"
+                    className="inline-flex items-center space-x-2 bg-white/20 hover:bg-white/30 transition px-6 py-3 rounded-full text-white font-medium backdrop-blur-sm group"
+                  >
                     <span>Explore Features</span>
                     <HiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
                   </Link>
@@ -287,7 +321,9 @@ const LandingPage = () => {
                 <div className="relative">
                   <MdTranslate className="w-10 h-10 text-white/90 mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">Real-time Translation</h3>
-                  <p className="text-white/80">Break language barriers instantly with AI translations in 100+ languages.</p>
+                  <p className="text-white/80">
+                    Break language barriers instantly with AI translations in 100+ languages.
+                  </p>
                 </div>
               </div>
 
@@ -296,7 +332,9 @@ const LandingPage = () => {
                 <div className="relative">
                   <MdViewInAr className="w-10 h-10 text-white/90 mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">AR Navigation</h3>
-                  <p className="text-white/80">Explore with augmented reality guidance and landmark recognition.</p>
+                  <p className="text-white/80">
+                    Explore with augmented reality guidance and landmark recognition.
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -313,7 +351,9 @@ const LandingPage = () => {
               <div className="relative">
                 <HiGlobe className="w-10 h-10 text-white/90 mb-4" />
                 <h3 className="text-xl font-bold text-white mb-2">Smart Recommendations</h3>
-                <p className="text-white/80">Get personalized suggestions based on your preferences and travel history.</p>
+                <p className="text-white/80">
+                  Get personalized suggestions based on your preferences and travel history.
+                </p>
               </div>
             </motion.div>
 
@@ -329,7 +369,10 @@ const LandingPage = () => {
                 <HiCube className="w-10 h-10 text-white/90 flex-shrink-0" />
                 <div>
                   <h3 className="text-xl font-bold text-white mb-2">Immersive Experiences</h3>
-                  <p className="text-white/80">Discover destinations through interactive 3D models and virtual tours before you travel.</p>
+                  <p className="text-white/80">
+                    Discover destinations through interactive 3D models and virtual tours before you
+                    travel.
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -358,40 +401,40 @@ const LandingPage = () => {
             {[
               {
                 icon: FaPlane,
-                title: "Smart Trip Planning",
-                description: "AI-powered itinerary creation with real-time optimization",
-                gradient: "from-teal-500 to-blue-500"
+                title: 'Smart Trip Planning',
+                description: 'AI-powered itinerary creation with real-time optimization',
+                gradient: 'from-teal-500 to-blue-500',
               },
               {
                 icon: FaShieldAlt,
-                title: "Travel Insurance",
-                description: "Comprehensive coverage for worry-free adventures",
-                gradient: "from-blue-500 to-indigo-500"
+                title: 'Travel Insurance',
+                description: 'Comprehensive coverage for worry-free adventures',
+                gradient: 'from-blue-500 to-indigo-500',
               },
               {
                 icon: FaRegLifeRing,
-                title: "24/7 Travel Support",
-                description: "Round-the-clock assistance in multiple languages",
-                gradient: "from-indigo-500 to-purple-500"
+                title: '24/7 Travel Support',
+                description: 'Round-the-clock assistance in multiple languages',
+                gradient: 'from-indigo-500 to-purple-500',
               },
               {
                 icon: MdTranslate,
-                title: "Real-time Translation",
-                description: "Break language barriers with AI-powered translations",
-                gradient: "from-purple-500 to-pink-500"
+                title: 'Real-time Translation',
+                description: 'Break language barriers with AI-powered translations',
+                gradient: 'from-purple-500 to-pink-500',
               },
               {
                 icon: MdViewInAr,
-                title: "AR Experiences",
-                description: "Immersive augmented reality city exploration",
-                gradient: "from-pink-500 to-rose-500"
+                title: 'AR Experiences',
+                description: 'Immersive augmented reality city exploration',
+                gradient: 'from-pink-500 to-rose-500',
               },
               {
                 icon: FaUserFriends,
-                title: "Local Guides",
-                description: "Connect with certified local experts worldwide",
-                gradient: "from-rose-500 to-teal-500"
-              }
+                title: 'Local Guides',
+                description: 'Connect with certified local experts worldwide',
+                gradient: 'from-rose-500 to-teal-500',
+              },
             ].map((service, index) => (
               <motion.div
                 key={index}
@@ -402,7 +445,9 @@ const LandingPage = () => {
                 className="relative group"
               >
                 <div className="relative z-10 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                  <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${service.gradient} mb-6`}>
+                  <div
+                    className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${service.gradient} mb-6`}
+                  >
                     <service.icon className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold mb-4 dark:text-white">{service.title}</h3>
@@ -426,7 +471,9 @@ const LandingPage = () => {
             <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 bg-clip-text text-transparent">
               Simple, Transparent Pricing
             </h2>
-            <p className="mt-4 text-xl text-gray-600">Choose the perfect plan for your travel needs</p>
+            <p className="mt-4 text-xl text-gray-600">
+              Choose the perfect plan for your travel needs
+            </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -451,8 +498,9 @@ const LandingPage = () => {
                     <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
                     <p className="text-gray-500 mt-2">{plan.nickname}</p>
                     <div className="mt-6">
-                      <span className="text-5xl font-bold">${plan.price}</span>
-                      <span className="text-gray-500">/month</span>
+                      <span className="text-5xl font-bold">
+                        {plan.price === 0 ? 'Free' : `₹${plan.price}`}
+                      </span>
                     </div>
                   </div>
 
@@ -475,9 +523,11 @@ const LandingPage = () => {
                   <Link
                     href="/signup"
                     className={`block w-full py-4 text-center rounded-xl font-medium transition
-                      ${plan.popular 
-                        ? 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:shadow-lg'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                      ${
+                        plan.popular
+                          ? 'bg-gradient-to-r from-teal-500 to-blue-500 text-white hover:shadow-lg'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {plan.ctaText}
                   </Link>
@@ -505,29 +555,29 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
               {
-                name: "Sarah Johnson",
-                role: "CEO & Founder",
-                image: "/team/sarah.jpg",
-                social: { twitter: "#", linkedin: "#" }
+                name: 'Sarah Johnson',
+                role: 'CEO & Founder',
+                image: '/team/sarah.jpg',
+                social: { twitter: '#', linkedin: '#' },
               },
               {
-                name: "Mike Chen",
-                role: "Head of AI",
-                image: "/team/mike.jpg",
-                social: { twitter: "#", linkedin: "#" }
+                name: 'Mike Chen',
+                role: 'Head of AI',
+                image: '/team/mike.jpg',
+                social: { twitter: '#', linkedin: '#' },
               },
               {
-                name: "Emma Davis",
-                role: "Lead Designer",
-                image: "/team/emma.jpg",
-                social: { twitter: "#", linkedin: "#" }
+                name: 'Emma Davis',
+                role: 'Lead Designer',
+                image: '/team/emma.jpg',
+                social: { twitter: '#', linkedin: '#' },
               },
               {
-                name: "Alex Kumar",
-                role: "Tech Lead",
-                image: "/team/alex.jpg",
-                social: { twitter: "#", linkedin: "#" }
-              }
+                name: 'Alex Kumar',
+                role: 'Tech Lead',
+                image: '/team/alex.jpg',
+                social: { twitter: '#', linkedin: '#' },
+              },
             ].map((member, index) => (
               <motion.div
                 key={index}
@@ -577,22 +627,24 @@ const LandingPage = () => {
                 <Image src="/logo.svg" alt="Logo" width={40} height={40} />
                 <span className="ml-2 text-xl font-bold">TravelBuddy</span>
               </Link>
-              <p className="text-gray-400">Your AI-powered travel companion for seamless adventures around the world.</p>
+              <p className="text-gray-400">
+                Your AI-powered travel companion for seamless adventures around the world.
+              </p>
             </div>
-            
+
             {[
               {
-                title: "Product",
-                links: ["Features", "Pricing", "API", "Documentation"]
+                title: 'Product',
+                links: ['Features', 'Pricing', 'API', 'Documentation'],
               },
               {
-                title: "Company",
-                links: ["About", "Careers", "Blog", "Press"]
+                title: 'Company',
+                links: ['About', 'Careers', 'Blog', 'Press'],
               },
               {
-                title: "Resources",
-                links: ["Community", "Help Center", "Partners", "Status"]
-              }
+                title: 'Resources',
+                links: ['Community', 'Help Center', 'Partners', 'Status'],
+              },
             ].map((column, index) => (
               <div key={index}>
                 <h3 className="text-lg font-semibold mb-6">{column.title}</h3>
@@ -608,9 +660,11 @@ const LandingPage = () => {
               </div>
             ))}
           </div>
-          
+
           <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400">© {new Date().getFullYear()} TravelBuddy. All rights reserved.</p>
+            <p className="text-gray-400">
+              © {new Date().getFullYear()} TravelBuddy. All rights reserved.
+            </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 hover:text-teal-400 transition">
                 <i className="fab fa-twitter text-xl"></i>
@@ -629,4 +683,4 @@ const LandingPage = () => {
   );
 };
 
-export default LandingPage; 
+export default LandingPage;
