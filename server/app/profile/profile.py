@@ -1,11 +1,18 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.models import User, Wallet, Subscription
-from app.schemas import ProfileUpdate, ProfileResponse, WalletResponse, SubscriptionResponse, Location
+from app.schemas import (
+    ProfileUpdate,
+    ProfileResponse,
+    WalletResponse,
+    SubscriptionResponse,
+    Location,
+)
 from app.db import get_db
 import json
 
 profile_router = APIRouter()
+
 
 @profile_router.get(
     "/me/{user_id}",
@@ -26,15 +33,20 @@ async def get_profile_by_user_id(user_id: str, db: Session = Depends(get_db)):
             else:
                 loc_dict = profile.location
             location_data = Location(
-                latitude=loc_dict.get('latitude'),
-                longitude=loc_dict.get('longitude')
+                latitude=loc_dict.get("latitude"), longitude=loc_dict.get("longitude")
             )
         except (json.JSONDecodeError, AttributeError, KeyError):
             location_data = None
 
+    # Get subscriptions
     subscriptions = db.query(Subscription).filter(Subscription.user_id == user_id).all()
-    subscription_data = [SubscriptionResponse.from_orm(sub) for sub in subscriptions]
+    subscription_data = (
+        [SubscriptionResponse.from_orm(sub) for sub in subscriptions]
+        if subscriptions
+        else []
+    )
 
+    # Get or create wallet
     wallet = db.query(Wallet).filter(Wallet.user_id == user_id).first()
     if wallet is None:
         wallet = Wallet(user_id=user_id, balance=0.0, coins=0)
@@ -50,7 +62,7 @@ async def get_profile_by_user_id(user_id: str, db: Session = Depends(get_db)):
         email=profile.email,
         is_active=profile.is_active,
         location=location_data,
-        subscriptions=subscription_data,
+        subscriptions=subscription_data,  # Now passing a list
         wallet=wallet_data,
     )
 

@@ -7,12 +7,16 @@ class Location(BaseModel):
     latitude: float
     longitude: float
 
+    class Config:
+        from_attributes = True
+
 
 class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str
     location: str
+
 
 class UserResponse(BaseModel):
     id: int
@@ -23,18 +27,20 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
+
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+
 class RefreshRequest(BaseModel):
     refresh_token: str
-
 
 
 class ProfileUpdate(BaseModel):
@@ -52,6 +58,7 @@ class WalletTransaction(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class WalletResponse(BaseModel):
@@ -63,6 +70,7 @@ class WalletResponse(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class SubscriptionResponse(BaseModel):
@@ -77,6 +85,7 @@ class SubscriptionResponse(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class ProfileResponse(BaseModel):
@@ -85,11 +94,12 @@ class ProfileResponse(BaseModel):
     email: EmailStr
     is_active: Optional[bool] = True
     location: Optional[Location] = None
-    subscriptions: Optional[SubscriptionResponse] = None
-    wallet: Optional[WalletResponse] = None  # Include wallet data
+    subscriptions: List[SubscriptionResponse] = []  # Change to List
+    wallet: Optional[WalletResponse] = None
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class Hotel(BaseModel):
@@ -106,6 +116,7 @@ class Hotel(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class Activity(BaseModel):
@@ -119,6 +130,7 @@ class Activity(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class Sight(BaseModel):
@@ -130,6 +142,7 @@ class Sight(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class Trip(BaseModel):
@@ -144,6 +157,7 @@ class Trip(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class Place(BaseModel):
@@ -156,6 +170,7 @@ class Place(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class ItineraryItemLink(BaseModel):
@@ -167,6 +182,7 @@ class ItineraryItemLink(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class ItineraryItem(BaseModel):
@@ -181,6 +197,7 @@ class ItineraryItem(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class Itinerary(BaseModel):
@@ -190,6 +207,7 @@ class Itinerary(BaseModel):
 
     class Config:
         orm_mode: True
+        from_attributes = True
 
 
 class PackageHotel(BaseModel):
@@ -238,6 +256,7 @@ class TripDetails(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class PackagesWrapper(BaseModel):
@@ -245,6 +264,7 @@ class PackagesWrapper(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class TripPackagesResponse(BaseModel):
@@ -253,3 +273,4 @@ class TripPackagesResponse(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
