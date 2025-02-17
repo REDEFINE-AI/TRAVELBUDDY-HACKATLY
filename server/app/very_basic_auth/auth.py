@@ -52,12 +52,12 @@ async def signup(
 
 @auth_router.post("/login")
 async def login(
-    username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)
+    email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)
 ):
     try:
-        # Query user directly with username and password
+        # Query user directly with email and password
         query = select(models.User).filter(
-            models.User.username == username,
+            models.User.email == email,
             models.User.hashed_password == password,  # Direct password comparison
         )
         result = db.execute(query)

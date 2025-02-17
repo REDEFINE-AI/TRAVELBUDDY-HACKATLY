@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.models import Translator, User
 import uuid
 
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 translator_router = APIRouter()
@@ -45,10 +46,10 @@ def translate_text(target_language: str, text: str) -> dict:
     summary="Transcribe and translate audio",
 )
 async def translate_audio(
+    user_id: str,
     audio_file: UploadFile = File(...),
     target_language: str = Form(...),
     db: Session = Depends(get_db),
-    user_id: str = Form(...),
 ):
     try:
         # Read the file content into bytes
@@ -98,9 +99,7 @@ async def translate_audio(
     "/recent",
     summary="Get last 5 translated messages",
 )
-async def get_recent_translations(
-    db: Session = Depends(get_db), user_id: str = Form(...)
-):
+async def get_recent_translations(user_id: str, db: Session = Depends(get_db)):
     try:
         translations = (
             db.query(Translator)

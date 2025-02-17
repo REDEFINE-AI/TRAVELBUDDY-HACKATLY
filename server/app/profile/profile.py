@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app.models import User, Wallet
-from app.schemas import ProfileUpdate, ProfileResponse, WalletResponse
+from app.models import User, Wallet, Subscription
+from app.schemas import ProfileUpdate, ProfileResponse, WalletResponse, SubscriptionResponse, Location
 from app.db import get_db
+import json
 
 profile_router = APIRouter()
 
-
 @profile_router.get(
-    "/user/{user_id}",
+    "/me/{user_id}",
     response_model=ProfileResponse,
     summary="Get profile by user ID",
 )
@@ -17,21 +17,46 @@ async def get_profile_by_user_id(user_id: str, db: Session = Depends(get_db)):
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    subscription = (
-        profile.subscriptions
-    )  # Assuming User has a relationship with Subscription
+    # Parse location data
+    location_data = None
+    if profile.location:
+        try:
+            if isinstance(profile.location, str):
+                loc_dict = json.loads(profile.location)
+            else:
+                loc_dict = profile.location
+            location_data = Location(
+                latitude=loc_dict.get('latitude'),
+                longitude=loc_dict.get('longitude')
+            )
+        except (json.JSONDecodeError, AttributeError, KeyError):
+            location_data = None
+
+    subscriptions = db.query(Subscription).filter(Subscription.user_id == user_id).all()
+    subscription_data = [SubscriptionResponse.from_orm(sub) for sub in subscriptions]
 
     wallet = db.query(Wallet).filter(Wallet.user_id == user_id).first()
     if wallet is None:
-        raise HTTPException(status_code=404, detail="Wallet not found")
+        wallet = Wallet(user_id=user_id, balance=0.0, coins=0)
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
 
     wallet_data = WalletResponse.from_orm(wallet)
 
-    return {"profile": profile, "subscription": subscription, "wallet": wallet_data}
+    return ProfileResponse(
+        id=profile.id,
+        username=profile.username,
+        email=profile.email,
+        is_active=profile.is_active,
+        location=location_data,
+        subscriptions=subscription_data,
+        wallet=wallet_data,
+    )
 
 
 @profile_router.put(
-    "/user/{user_id}",
+    "/me/{user_id}",
     response_model=ProfileResponse,
     summary="Update profile by user ID",
 )
@@ -48,15 +73,6 @@ async def update_profile_by_user_id(
     db.commit()
     db.refresh(db_profile)
     return db_profile
-
-
-@profile_router.get(
-    "/me",
-    response_model=ProfileResponse,
-    summary="Get profile with subscription and wallet",
-)
-async def get_profile(user_id: str, db: Session = Depends(get_db)):
-    return await get_profile_by_user_id(user_id, db)
 
 
 @profile_router.put("/me", response_model=ProfileResponse, summary="Update profile")
