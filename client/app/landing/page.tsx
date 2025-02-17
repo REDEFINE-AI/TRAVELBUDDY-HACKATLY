@@ -94,8 +94,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <Image src="/logo.svg" alt="Logo" width={40} height={40} />
-              <span className="ml-2 text-xl font-bold text-gray-900">TravelBuddy</span>
+              <span className="text-xl font-bold text-gray-900">TravelBuddy</span>
             </Link>
           </div>
 
@@ -390,10 +389,10 @@ const LandingPage = () => {
             className="text-center mb-20"
           >
             <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
-              Comprehensive Travel Services
+              Comprehensive Travel & Safety Services
             </h2>
             <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">
-              Everything you need for a perfect journey
+              Your safety and convenience are our top priorities
             </p>
           </motion.div>
 
@@ -407,15 +406,16 @@ const LandingPage = () => {
               },
               {
                 icon: FaShieldAlt,
-                title: 'Travel Insurance',
-                description: 'Comprehensive coverage for worry-free adventures',
-                gradient: 'from-blue-500 to-indigo-500',
+                title: 'Emergency SOS',
+                description:
+                  'One-tap emergency assistance with location sharing and local authority contact',
+                gradient: 'from-red-500 to-orange-500',
               },
               {
                 icon: FaRegLifeRing,
-                title: '24/7 Travel Support',
-                description: 'Round-the-clock assistance in multiple languages',
-                gradient: 'from-indigo-500 to-purple-500',
+                title: '24/7 Emergency Support',
+                description: 'Immediate access to medical facilities, police, and embassy contacts',
+                gradient: 'from-orange-500 to-amber-500',
               },
               {
                 icon: MdTranslate,
@@ -424,16 +424,16 @@ const LandingPage = () => {
                 gradient: 'from-purple-500 to-pink-500',
               },
               {
-                icon: MdViewInAr,
-                title: 'AR Experiences',
-                description: 'Immersive augmented reality city exploration',
-                gradient: 'from-pink-500 to-rose-500',
+                icon: HiCube,
+                title: 'Digital Wallet',
+                description: 'Secure payment solutions and emergency fund access worldwide',
+                gradient: 'from-green-500 to-emerald-500',
               },
               {
                 icon: FaUserFriends,
-                title: 'Local Guides',
-                description: 'Connect with certified local experts worldwide',
-                gradient: 'from-rose-500 to-teal-500',
+                title: 'Safety Network',
+                description: 'Connect with verified local emergency contacts and fellow travelers',
+                gradient: 'from-blue-500 to-indigo-500',
               },
             ].map((service, index) => (
               <motion.div
@@ -549,34 +549,25 @@ const LandingPage = () => {
             <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-teal-800 to-blue-900 bg-clip-text text-transparent">
               Meet Our Team
             </h2>
-            <p className="mt-4 text-xl text-gray-600">The passionate people behind TravelBuddy</p>
+            <p className="mt-4 text-xl text-gray-600">The developers behind TravelBuddy</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
-                name: 'Sarah Johnson',
-                role: 'CEO & Founder',
-                image: '/team/sarah.jpg',
-                social: { twitter: '#', linkedin: '#' },
+                name: 'Rinto Joseph TR',
+                role: 'Full Stack Developer',
+                social: { github: '#', linkedin: '#' },
               },
               {
-                name: 'Mike Chen',
-                role: 'Head of AI',
-                image: '/team/mike.jpg',
-                social: { twitter: '#', linkedin: '#' },
+                name: 'Soorya Krishna P R',
+                role: 'Full Stack Developer',
+                social: { github: '#', linkedin: '#' },
               },
               {
-                name: 'Emma Davis',
-                role: 'Lead Designer',
-                image: '/team/emma.jpg',
-                social: { twitter: '#', linkedin: '#' },
-              },
-              {
-                name: 'Alex Kumar',
-                role: 'Tech Lead',
-                image: '/team/alex.jpg',
-                social: { twitter: '#', linkedin: '#' },
+                name: 'Alfrin Poulose',
+                role: 'Full Stack Developer',
+                social: { github: '#', linkedin: '#' },
               },
             ].map((member, index) => (
               <motion.div
@@ -585,31 +576,56 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden"
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
               >
-                <div className="relative">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    width={300}
-                    height={300}
-                    className="w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
-                  <p className="text-teal-600 mb-4">{member.role}</p>
-                  <div className="flex space-x-4">
-                    {Object.entries(member.social).map(([platform, link]) => (
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-white">
+                      {member.name.split(' ')[0][0]}
+                      {member.name.split(' ')[1][0]}
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h3>
+                    <p className="text-teal-600 mb-4">{member.role}</p>
+                    <div className="flex justify-center space-x-4">
                       <a
-                        key={platform}
-                        href={link}
-                        className="text-gray-400 hover:text-teal-500 transition"
+                        href={member.social.github}
+                        className="text-gray-600 hover:text-teal-500 transition"
+                        aria-label="GitHub"
                       >
-                        <i className={`fab fa-${platform}`}></i>
+                        <svg
+                          className="w-6 h-6"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                       </a>
-                    ))}
+                      <a
+                        href={member.social.linkedin}
+                        className="text-gray-600 hover:text-teal-500 transition"
+                        aria-label="LinkedIn"
+                      >
+                        <svg
+                          className="w-6 h-6"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -624,11 +640,11 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div>
               <Link href="/" className="flex items-center mb-6">
-                <Image src="/logo.svg" alt="Logo" width={40} height={40} />
-                <span className="ml-2 text-xl font-bold">TravelBuddy</span>
+                <span className="text-xl font-bold">TravelBuddy</span>
               </Link>
               <p className="text-gray-400">
-                Your AI-powered travel companion for seamless adventures around the world.
+                Your AI-powered travel companion with advanced safety features for worry-free
+                adventures.
               </p>
             </div>
 
