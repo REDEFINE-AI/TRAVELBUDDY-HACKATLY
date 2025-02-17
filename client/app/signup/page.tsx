@@ -43,7 +43,7 @@ const SignupPage: React.FC = () => {
     otp: "",
     errors: { name: "", email: "", password: "" },
   });
-  const { setUser, setToken } = useAuthStore();
+  const { setUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: keyof SignupFormData, value: string) => {
@@ -113,14 +113,10 @@ const SignupPage: React.FC = () => {
           },
         });
 
-        const { access_token } = response.data;
-        setToken(access_token);
-        document.cookie = `token=${access_token}; path=/; secure; samesite=strict`;
+        const { id } = response.data;
+        document.cookie = `user_id=${id}; path=/; secure; samesite=strict`;
 
-        // Fetch user data after successful signup
-        const userResponse = await axiosInstance.get('/profile/me');
-        
-        setUser(userResponse.data);
+
 
         toast.success('Account created successfully!');
         router.push('/onboarding');
@@ -165,23 +161,12 @@ const SignupPage: React.FC = () => {
         formDataToSend.append('location', JSON.stringify(location));
       }
 
-      const response = await axiosInstance.post(`/auth/${provider}/signup`, formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      const { access_token } = response.data;
-      setToken(access_token);
-      document.cookie = `token=${access_token}; path=/; secure; samesite=strict`;
+      const response = await axiosInstance.post(`/auth/${provider}/signup`, formDataToSend);
+      const { user_id } = response.data;
+      document.cookie = `user_id=${user_id}; path=/; secure; samesite=strict`;
 
       // Fetch user data after successful social signup
-      const userResponse = await axiosInstance.get('/profile/me', {
-        headers: {
-          Authorization: `Bearer ${access_token}`
-        }
-      });
-      
+      const userResponse = await axiosInstance.get('/profile/me');
       setUser(userResponse.data);
       
       toast.success('Account created successfully!');
